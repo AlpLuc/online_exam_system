@@ -1,0 +1,51 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="container-md mx-auto p-0 border border-grey shadow">
+    <div class="card mx-auto shadow">
+        <div class="card-body pb-5 pb-0">
+            <div class="d-flex justify-content-between mb-3">
+                <h3 class="text-center">Your Courses</h3>
+                <a href="{% url 'register_course' %}" class="btn btn-primary">Register Course</a>
+            </div>
+            <hr>
+            
+            {% if registered_course_list %}
+            <div class="row">
+                {% for course in registered_course_list %}
+                <div class="col-12 mb-3">
+                    <div class="card shadow-sm">
+                        <div class="card-body">
+                            <h3 class="card-title">{{ course }}</h3>
+                            <h4 class="text-secondary fs-6 fw-normal m-0">{{course.programme}}</h4>
+                            <hr class="my-2">
+                            <table class="table table-borderless mb-2">
+                                <tbody>
+                                    <tr class="row">
+                                        <th scope="row" class="col-md-1">Code:</th>
+                                        <td class="col-md-4">{{ course.code }}</td>
+                                    </tr>
+                                    <tr class="row">
+                                        <th scope="row" class="col-md-1">Lecturer:</th>
+                                        <td class="col-md-4">{{ course.lecturer.user.first_name|title }} {{ course.lecturer.user.last_name|title }}</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <hr class="my-2">
+                            <a href="{% url 'remove_course' course.id %}" class="btn btn-danger btn-sm">Remove</a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="alert alert-primary" role="alert">
+                <h5>No registered courses yet.</h5>
+            </div>
+            {% endif %}            
+            
+        </div>
+    </div>
+</div>
+
+{% endblock content %}

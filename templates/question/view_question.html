@@ -1,0 +1,90 @@
+{% extends "layout.html" %}
+{% load static %}
+
+{% block stylesheet %}<link rel="stylesheet" href="{% static 'css/exam.css'%}">{% endblock stylesheet %}
+
+{% block content %}
+<div class="container-lg my-4" style="max-width: 85vw;">
+    <div class="card mx-auto shadow" style="font-size: 1rem;">
+        <div class="card-body p-3">
+            <h1>View Question</h1>
+            <hr>    
+            <!-- Question Details -->
+            <h5 class="h6">Question:</h5>
+            <p>{{ question.question }}</p>
+
+            <!-- Question Type -->
+            <h5 class="h6">Question Type:</h5>
+            <p>{{ question.question_type|upper }}</p>
+
+            <!-- Question Options -->
+            <div class="mb-3">
+            {%if question.question_type == 'mcq' %}
+                <hr>
+                <h5 class="h6">Option:</h5>
+                {% for key, option in q_options.items %}
+                <div class="row mb-2">
+                    <div class="col-10">
+                        <input type="text" name="options" class="form-control option {% if option|stringformat:"s" in q_correct_ans %} border-success {% endif %}" value="{{ key }}" readonly>                   
+                    </div>
+                    <div class="col-auto m-auto">
+                        <!--if statement checks for correct anwers and checks if exist-->     
+                        <input type="checkbox" name="mcq_answers" class="form-check-input" value="{{option}}" {% if option|stringformat:"s" in q_correct_ans %}checked{% endif %} disabled>
+                    </div>
+                </div>
+                {% endfor %}
+                <hr>
+            {% elif question.question_type == 'tf'%}
+                <hr>
+                <h5 class="h6">Option:</h5>
+                <div class="row mb-2">
+                    <div class="col-10">
+                        <label class="form-label">Options</label>               
+                    </div>
+                    <div class="col-auto d-none d-xxl-block">
+                        <label class="form-label">Answer</label>
+                    </div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-10">
+                        <input type="text" class="form-control {% if '1' in q_correct_ans %} border-success {% endif %}" value="True" readonly>
+                    </div>
+                    <div class="col-auto m-auto">
+                        <input type="radio" name="tf_answers" value="1" {% if '1' in q_correct_ans %} checked {% endif %} disabled>
+                    </div>
+                </div>
+                <div class="row mb-2">
+                    <div class="col-10">
+                        <input type="text" class="form-control {% if '0' in q_correct_ans %} border-success {% endif %}" value="False" readonly>
+                    </div>
+                    <div class="col-auto m-auto">
+                        <input type="radio" name="tf_answers" value="0" {% if '0' in q_correct_ans %} checked {% endif %} disabled>
+                    </div>
+                </div>
+                <hr>
+            {% elif question.question_type == 'essay'%}
+            {%endif%}
+            </div>
+
+            <!-- Marks -->
+            <div class="mb-3">
+                <h5 class="h6">Marks:</h5>
+                <p>{{ question.marks }}</p>
+            </div>
+
+            <!-- Explanation -->
+            <div class="mb-3">
+                <h5 class="h6">Explanation:</h5>
+                <p>{% if question.explanation %}{{ question.explanation }}{% else %}No explanation provided.{% endif %}</p>
+            </div>
+
+            <!-- Back Button -->
+            <a href="{% url 'question_list' question.question_bank.id %}" class="btn btn-primary mt-3">Back to Question</a>
+      
+            
+        </div>
+    </div>
+</div>
+{% endblock content %}
+
+

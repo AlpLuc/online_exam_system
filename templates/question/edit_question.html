@@ -1,0 +1,181 @@
+{% extends 'layout.html'%}
+{% load static %}
+
+{% block stylesheet %}<link rel="stylesheet" href="{% static 'css/exam.css'%}">{% endblock stylesheet %}
+
+{% block content %}
+
+{% if messages %}
+    {% for message in messages %}
+        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    {% endfor %}
+{% endif %}
+<div class="container-md my-4">
+    <div class="card mx-auto shadow" style="max-width: 70vw; font-size: 1rem;">
+        <div class="card-body p-3">
+            <h1>Edit Question</h1>
+            <hr>
+
+            <form action="" class="ques_form" id="ques_form" method=POST>
+                {% csrf_token %}
+                <div class="row px-4">                    
+                    <!-- Left Column -->
+                    <div class="col-md-6">    
+                        <!-- Question -->
+                        <div class="mb-3">
+                            <label for="id_question" class="form-label">{{question_form.question.label|title}}</label>
+                            <input type="text" name="question" value="{{question.question}}" required id="id_question" class="form-control">
+                        </div>
+
+                        <!-- MCQ Options and Correct Answer -->
+                        <div id="mcq_div" class="conditional-div" style="">
+                            <div class="row mb-2">
+                                <div class="col-10">
+                                    <label class="form-label">Options</label>               
+                                </div>
+                                <div class="col-auto d-none d-xxl-block">
+                                    <label class="form-label">Answer</label>
+                                </div>
+                            </div>
+                
+                            {%if q_options %}
+                                {% for key, option in q_options.items %}
+                                <div class="row mb-2">
+                                    <div class="col-10">
+                                        <input type="text" name="options" class="form-control option" value="{{ key }}">                   
+                                    </div>
+                                    <div class="col-auto m-auto">
+                                        <!--if statement checks for correct anwers and checks if exist-->     
+                                        <input type="checkbox" name="mcq_answers" class="form-check-input" value="{{option}}" {% if option|stringformat:"s" in q_correct_ans %}checked{% endif %} >
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            {% else %}
+                                <div class="row mb-2">
+                                    <div class="col-10">
+                                    <input type="text" name="options" class="form-control option" placeholder="Option 1">
+                                    </div>
+                                    <div class="col-auto m-auto">
+                                    <input type="checkbox" class="form-check-input" name="mcq_answers" value='0' > 
+                                    </div>
+                                </div>
+                                    
+                            <div class="row mb-2">
+                                <div class="col-10">
+                                <input type="text" name="options" class="form-control option" placeholder="Option 2">
+                                </div>
+                                <div class="col-auto m-auto">
+                                <input type="checkbox" class="form-check-input" name="mcq_answers" value='1'> 
+                                </div>
+                            </div>
+                                
+                            <div class="row mb-2">
+                                <div class="col-10">                
+                                <input type="text" name="options" class="form-control option" placeholder="Option 3">
+                                </div>
+                                <div class="col-auto m-auto">
+                                <input type="checkbox" class="form-check-input" name="mcq_answers" value='2'> 
+                                </div>
+                            </div>
+
+                            <div class="row mb-2">
+                                <div class="col-10">
+                                <input type="text" name="options" class="form-control option" placeholder="Option 4">
+                                </div>
+                                <div class="col-auto m-auto">
+                                <input type="checkbox" class="form-check-input" name="mcq_answers" value='3'> 
+                                </div>
+                            </div>
+                            {%endif%}
+                        </div>
+
+                        <!-- Essay and True/False Options -->
+                        <div id="essay_div" class="conditional-div" style="">
+                        </div>
+
+                        <div id="tf_div" class="conditional-div" style="display: none;">
+                            <div class="row mb-2">
+                                <div class="col-10">
+                                    <label class="form-label">Options</label>               
+                                </div>
+                                <div class="col-auto d-none d-xxl-block">
+                                    <label class="form-label">Answer</label>
+                                </div>
+                            </div>
+                            <div class="row mb-2">
+                                <div class="col-10">
+                                    <input type="text" class="form-control" value="True" readonly>
+                                </div>
+                                <div class="col-auto m-auto">
+                                    <input type="radio" name="tf_answers" value="1" {% if '1' in q_correct_ans %} checked {% endif %}>
+                                </div>
+                            </div>
+                            <div class="row mb-2">
+                                <div class="col-10">
+                                    <input type="text" class="form-control" value="False" readonly>
+                                </div>
+                                <div class="col-auto m-auto">
+                                    <input type="radio" name="tf_answers" value="0" {% if '0' in q_correct_ans %} checked {% endif %}>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Explanation -->
+                        <div class="mb-3">
+                            <label for="id_explanation" class="form-label">{{question_form.explanation.label|title}}</label>
+                            <input type="text" name="explanation" value="{{question.explanation}}" id="id_explanation" class="form-control">
+                        </div>
+                    </div>
+
+                    <!-- Right Column -->
+                    <div class="col-md-6">
+                        <!-- Question Bank -->
+                        <div class="mb-3">
+                            <div class="col-12">
+                                <label for="id_question_bank" class="form-label">{{question_form.question_bank.label|title}}</label>
+                                <select name="question_bank" required id="id_question_bank" class="form-select" disabled>
+                                    <option value="">Select Question Bank</option>
+                                    {% for  question_bank_obj in  question_form.fields.question_bank.queryset %}
+                                        <option value="{{question_bank_obj.id}}" {%if question_bank_obj.id == question.question_bank.id %}selected{%endif%}>{{question_bank_obj.title}}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Question Type -->
+                        <div class="mb-3">
+                            <label for="id_question_type" class="form-label">{{question_form.question_type.label|title}}</label>
+                            <select name="question_type" required id="id_question_type" class="form-select">
+                                {% for key, question_type in question_form.fields.question_type.choices %}
+                                <option value="{{key}}" {% if question_form.instance.question_type == key %}selected{% endif %}>{{question_type}}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Marks -->
+                        <div class="mb-3">
+                            <label for="id_marks" class="form-label">{{question_form.marks.label}}</label>
+                            <input type="number" name="marks" value="{{question.marks}}" min="1" required id="id_marks" class="form-control">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-grid gap-2 col-4 mx-auto m-2">
+                    <button class="btn btn-primary mx-auto" type="submit" value="Submit">Submit</button>
+                </div>            
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock content %}
+
+{% block script %}
+    <script src="{% static 'js/question.js' %}"></script> 
+    <script>
+        quesTypeSwitch()      
+    </script>
+{% endblock script %}

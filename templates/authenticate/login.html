@@ -1,0 +1,53 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+{% if messages %}
+    {% for message in messages %}
+        <div class="alert alert-{{message.tags}} alert-dismissible fade show m-0" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    {% endfor %}
+{% endif %}
+
+
+<div class="container-lg my-4 w-50">
+    <div class="card mx-auto shadow">
+        <div class="card-body p-3">
+            <h1 class="m-5 text-center">Login</h1>
+            <form action="" method=POST>
+                {% csrf_token %}
+                <div class="container text-center">
+                    <div class="label-group fs-5 m-4 text-center">
+                        <label class="w-25" for="username">User ID: </label>
+                        <input class="w-auto"  type="text" name="username" id="username_id"> 
+                    </div> 
+
+                    <div class="label-group fs-5 m-4 text-center">
+                        <label class="w-25" for="password">Password: </label>
+                        <input class="w-auto" type="password" name="password" id="password">
+                    </div>
+                    <div>
+                        <a href="{% url 'password_reset' %}">Forgot Password?</a>
+                    </div>
+                    <div class="d-grid gap-2 col-4 mx-auto m-5 mt-3">
+                        <button type="submit" value="Submit" class="btn w-100 rounded-pill btn-primary">Log in</button>
+                    </div>
+                </div>
+            </form>
+        </div>    
+    </div>
+</div>
+
+
+<div class="text-center">
+    <h6 class="fw-normal">Don't have a account? Register Here as 
+        <a href="{% url 'student_reg'%}">Student</a>  |
+        <a href="{% url 'lecturer_reg'%}">Lecturer</a>
+    </h6>
+
+    <h6 class="fw-normal">Admin Login <a href="/admin/">Here</a></h6>
+</div>
+
+{% endblock content %}

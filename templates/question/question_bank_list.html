@@ -1,0 +1,118 @@
+{% extends 'layout.html'%}
+{% load static %}
+
+{% block stylesheet %}<link rel="stylesheet" href="{% static 'css/question.css' %}">{% endblock stylesheet %}
+
+{% block content %}
+<div class="container-md mx-auto p-0 border border-grey shadow">
+  <div class="card mx-auto shadow">
+    <div class="card-body p-0 pb-0">
+      <div class="postion-sticky p-3 pb-1 top-0 row">
+        <a class="col-md-5 text-decoration-none text-dark" href="{% url 'question_bank_list' %}"><h2>Question Bank List</h2></a>
+
+        <form method="GET" class="col-4 row" id="searchFilterForm">
+          <!--search-->
+          <div class="col-md-6 d-flex my-auto">
+            <i class="bi bi-search my-auto mx-1"></i>
+            <input type="text" name="search" class="form-control" placeholder="Search question bank" value="{{ search_query }}">
+          </div>
+                    
+          <!--filter-->
+          <div class="col-md-6 d-flex my-auto">
+            <i class="bi bi-funnel-fill my-auto mx-1"></i>
+            <select name="filter" class="form-select py-0" onchange="document.getElementById('searchFilterForm').submit()" >
+              <option value="">Filter by Course</option>
+              {% for course in course_list %}
+                <option value="{{ course.id }}" {% if filter_type == course %}selected{% endif %}>{{ course | title}}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </form>
+
+        <div class="col-md-3 text-end my-auto">
+          <a class="btn btn-primary mx-auto" href="{% url 'create_question_bank' %}" role="button">Create Question Bank</a>
+        </div>
+
+      </div>
+
+      <hr class="m-1">
+      
+      <div class="px-3">
+        <table class="table table-hover">
+            <thead>
+              <tr>
+                <th scope="col" style="width: 5%;">#</th>
+                <th scope="col" style="width: 45%;">Title</th>
+                <th scope="col" style="width: 30%;">Course</th>
+                <th scope="col" style="width: 20%;">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+            {% for question_bank_obj in question_banks %}
+              <tr class="clickable-row shadow-hover" onclick="window.location='{% url 'question_list' question_bank_obj.pk %}'" data-bs-toggle="tooltip" data-bs-placement="top" title="View {{question_bank_obj.title}}">
+                <th scope="row">{{forloop.counter}}</th>
+                <td>{{question_bank_obj.title}}</td>
+                <td>{{question_bank_obj.course}}</td>
+                <td>
+                    <a href="{% url 'edit_question_bank' question_bank_obj.pk %}" class="btn btn-primary">Edit</a>
+                    <a href="{% url 'question_list' question_bank_obj.pk %}" class="btn btn-primary">View Questions</a>
+                </td>
+              </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+
+        <!-- Pagination Controls -->
+        <nav class="my-3">
+          <ul class="pagination justify-content-center pagination-clean">
+              {% if question_banks.has_previous %}
+              <li class="page-item">
+                  <a class="page-link" href="?page={{ question_banks.previous_page_number }}" aria-label="Previous">
+                      <span aria-hidden="true">&laquo;</span>
+                  </a>
+              </li>
+              {% else %}
+              <li class="page-item disabled">
+                  <a class="page-link" href="#" aria-label="Previous">
+                      <span aria-hidden="true">&laquo;</span>
+                  </a>
+              </li>
+              {% endif %}
+
+              {% with question_banks.number|add:"-2" as start_page %}
+              {% with question_banks.number|add:"2" as end_page %}
+              {% for num in question_banks.paginator.page_range %}
+              {% if num >= start_page and num <= end_page %}
+              <li class="page-item {% if question_banks.number == num %}active{% endif %}">
+                  <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+              </li>
+              {% endif %}
+              {% endfor %}
+              {% endwith %}
+              {% endwith %}
+
+              {% if question_banks.has_next %}
+              <li class="page-item">
+                  <a class="page-link" href="?page={{ question_banks.next_page_number }}" aria-label="Next">
+                      <span aria-hidden="true">&raquo;</span>
+                  </a>
+              </li>
+              {% else %}
+              <li class="page-item disabled">
+                  <a class="page-link" href="#" aria-label="Next">
+                      <span aria-hidden="true">&raquo;</span>
+                  </a>
+              </li>
+              {% endif %}
+          </ul>
+        </nav>
+
+      </div>
+
+    </div>
+  </div>
+</div>
+
+
+{% endblock content %}
+

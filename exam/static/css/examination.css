@@ -1,0 +1,11 @@
+.triangle {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 0;
+    height: 0;
+    border-left: 30px solid transparent; /* Transparent border on the right */
+    border-top: 30px solid rgb(206, 16, 16); /* Color and height of the triangle */
+    border-right: 0;
+    border-bottom: 0;
+}

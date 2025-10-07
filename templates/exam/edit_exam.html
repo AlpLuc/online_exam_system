@@ -1,0 +1,190 @@
+{% extends "layout.html" %}
+{% load static %}
+
+{% block stylesheet %}<link rel="stylesheet" href="{% static 'css/exam.css'%}">{% endblock stylesheet %}
+
+{% block content %}
+<div class="container-lg my-4" style="max-width: 85vw;">
+    <div class="card mx-auto shadow" style="font-size: 1rem;">
+        <div class="card-body p-3">
+            <h2>Edit Exam</h2>
+            <hr>
+            <form action="" method=POST>
+                {% csrf_token %}
+                <!-- Info Div -->
+                <div class="row mx-3">
+                    <!-- Exam/Tracking Setting Div -->
+                    <div class="col-md-6 d-flex flex-column">
+                        <!-- Toggle Buttons -->
+                        <div class="d-flex justify-content-start mb-3">
+                            <button type=button class="btn btn-primary border border-2 rounded-pill me-2" id="exam_btn" onclick="showExamSetting();">Exam Setting</button>
+                            <button type=button class="btn border border-2 rounded-pill" id="tracking_btn" onclick="showTrackingSetting();">Tracking Setting</button>
+                        </div>
+                        <!--Exam-div-->
+                        <div id="exam_div" class="h-100">                        
+                            <!-- Question Bank -->
+                            <div class="mb-3">
+                                <label for="question_bank" class="form-label">{{exam_form.fields.question_bank.label}}</label>
+                                <select id="id_question_bank" name="question_bank" class="form-select" onchange="this.form.submit()">
+                                    <option value="">Select a Question Bank</option>
+                                    {% for bank in exam_form.fields.question_bank.queryset %}
+                                        <option value="{{ bank.id }}" {% if bank.id == selected_question_bank %} selected {% endif %}>
+                                            {{bank.course}} - {{ bank.title }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <!-- Title -->
+                            <div class="mb-3">
+                                <label for="id_title" class="form-label">{{ exam_form.fields.title.label }}</label>
+                                <input type="text" name="title" value="{{exam.title}}" required id="id_title" class="form-control">
+                            </div>
+
+                            <!-- Cohort -->
+                            <div class="row mb-3">
+                                <div class="col">
+                                    <label for="id_year" class="form-label">Cohort</label>
+                                    <select name="cohort" class="form-control" id="id_year" required>
+                                        <option value="" disabled selected>Select Cohort</option>
+                                        {% for cohort in cohorts %}
+                                            <option value="{{ cohort }}" {% if cohort == exam.cohort %}selected{% endif %}>{{ cohort }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        
+                            <!-- Start Date & Time and End Date & Time -->
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="id_start_date_time" class="form-label">{{exam_form.fields.start_date_time.label}}</label>
+                                    <input type="datetime-local" name="start_date_time" value="{{exam_form.initial.start_date_time|date:'Y-m-d\\TH:i'}}" required id="id_start_date_time" class="form-control">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="id_end_date_time" class="form-label">{{exam_form.fields.end_date_time.label}}</label>
+                                    <input type="datetime-local" name="end_date_time" value="{{exam_form.initial.end_date_time|date:'Y-m-d\\TH:i'}}" required id="id_end_date_time" class="form-control">
+                                </div>
+                            </div>
+                        
+                            <!-- Duration and Total Attempts -->
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="id_duration" class="form-label">{{exam_form.fields.duration.label}}</label>
+                                    <input type="number" name="duration" value="{{exam.duration}}" min="1" required id="id_duration" class="form-control">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="id_total_attempt" class="form-label">{{exam_form.fields.total_attempt.label}}</label>
+                                    <input type="number" name="total_attempt" value="{{exam.total_attempt}}" min="1" required id="id_total_attempt" class="form-control">
+                                </div>
+                            </div>
+                        </div>
+                        
+
+                        <div id="tracking_div" class="h-100" style="display: none;">  
+                            <!-- Random Order and Copy-Paste Restrict -->
+                            <hr class="m-1">
+                            <div class="form-check mb-3">
+                                <input type="checkbox" name="random_order" id="id_random_order" class="form-check-input" {% if exam.random_order == 1 %}checked{% endif %}>
+                                <label for="id_random_order" class="form-check-label">{{exam_form.fields.random_order.label}}</label>
+                            </div>
+
+                            <div class="form-check mb-3">
+                                <input type="checkbox" name="copy_paste_restrict" id="id_copy_paste_restrict" class="form-check-input" {% if exam.copy_paste_restrict == 1 %}checked{% endif %}>
+                                <label for="id_copy_paste_restrict" class="form-check-label">{{exam_form.fields.copy_paste_restrict.label}}</label>
+                            </div>
+                            <hr>
+                                                  
+                            <!-- Capture Screen -->
+                            <div class="form-check mb-3">
+                                <input type="checkbox" class="form-check-input" name="capture_screen" id="id_capture_screen" aria-describedby="id_capture_screen_helptext" {% if track_setting.capture_screen == 1 %}checked{% endif %}>
+                                <label for="id_capture_screen" class="form-check-label">{{tracking_form.fields.capture_screen.label}}</label>
+                            </div>
+
+                            <!-- Browser Activity Monitoring -->
+                            <div class="form-check mb-3">
+                                <input type="checkbox" class="form-check-input" name="browser_activity" id="id_browser_activity" aria-describedby="id_browser_activity_helptext" {% if track_setting.browser_activity == 1 %}checked{% endif %}>
+                                <label for="id_browser_activity" class="form-check-label">{{tracking_form.fields.browser_activity.label}}</label>
+                            </div>
+                            <hr>
+                        
+                            <!-- Tab Switch Monitoring -->
+                            <div class="form-check mb-3">
+                                <input type="checkbox" class="form-check-input" name="tab_switch" id="id_tab_switch" aria-describedby="id_tab_switch_helptext" {% if track_setting.tab_switch == 1 %}checked{% endif %}>
+                                <label for="id_tab_switch" class="form-check-label">{{tracking_form.fields.tab_switch.label}}</label>
+                            </div>
+                        
+                            <!-- Tab Switch Limit -->
+                            <div class="mb-3">
+                                <label for="id_tab_switch_limit" class="form-label">{{tracking_form.fields.tab_switch_limit.label}}</label>
+                                <input type="number" class="form-control" name="tab_switch_limit" id="id_tab_switch_limit" min="1" value="{{track_setting.tab_switch_limit}}" aria-describedby="id_tab_switch_limit_helptext">
+                            </div>
+                            <hr>
+                        </div>
+
+                    </div>
+
+                    <!-- Right Column -->
+                    <div class="col-md-6 d-flex flex-column">
+                        <!--Select All checkbox -->
+                        <div class="text-end">
+                            <label class="mx-3">
+                                Select All<input class="mx-3" type="checkbox" id="checkAll" onclick="toggleAllCheckboxes(this);">
+                            </label>
+                        </div>
+                        <!-- Question Div -->
+                        <div id="ques_div" class="overflow-auto">
+                            <table class="table table-striped">
+                                <thead style="position: sticky; top: 0; background-color: white; z-index: 1;">
+                                    <tr>
+                                        <th scope="col" style="width: 5%;">#</th>
+                                        <th scope="col" style="width: 50%;">Question</th>
+                                        <th scope="col" style="width: 20%;">Type</th>
+                                        <th scope="col" style="width: 20%;">Mark</th>
+                                        <th scope="col" style="width: 5%;">Include</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="ques_tbody">
+                                    {% for question in question_list %}
+                                    <tr>
+                                        <td>{{ forloop.counter }}</td>
+                                        <td>{{ question.question }}</td>
+                                        <td>{{ question.question_type }}</td>
+                                        <td>{{ question.marks }}</td>
+                                        
+                                        <td>
+                                            <div class="form-check">
+                                            <input type="checkbox" class="question_checkbox" name="selected_questions" value="{{question.id}}" {% if question.id|stringformat:"s" in exam.question_list %}checked{% endif %} onclick="updateCheckAllStatus()"   >
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                
+                <div class="d-grid gap-2 col-4 mx-auto mt-5">
+                    <button id="submitBtn" name="submitBtn" type="submit" value="Submit" class="btn btn-primary mx-auto" onclick="checkTrackingStatus();">Submit</button>
+                </div>
+
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock content %}
+
+{% block script %}
+    <script src="{% static 'js/exam.js' %}"></script>
+    
+    <script>
+        updateCheckAllStatus();
+        markTrackingPressed();
+        questionBankChangeConfirm();
+        toggleTabSwitchLimit();
+        validate();
+    </script>
+{% endblock script %}
+
+

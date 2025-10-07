@@ -1,0 +1,145 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="card mx-auto shadow" style="max-width: 85vw; font-size: 1rem;">
+        <div class="card-body p-3">
+            <div class="row g-4">
+                <!-- Profile Picture Section -->
+                <div class="col-12 col-lg-4 text-center">
+                    <div class="container">
+                        <div class="d-flex justify-content-center mb-3">
+                            {% if user_profile.profile_picture %}
+                                <img src="{{ user_profile.profile_picture.url }}" alt="Profile Picture" class="img-fluid rounded-circle" style="width: 100%; max-width: 250px; height: auto; height: 250px;">
+                            {% else %}
+                                <img src="/media/profile_pictures/default.jpg" alt="Default Profile Picture" class="img-fluid rounded-circle" style="width: 100%; max-width: 250px; height: auto; height: 250px;">
+                            {% endif %}
+                        </div>
+                        <div>
+                            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#profile_pic_modal">
+                                Upload Picture
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Profile Details Section -->
+                <div class="col-12 col-lg-8">
+                    {% if user.groups.all.0.name == "student" %}
+                    <div>
+                        <h1 class="text-center text-lg-start">Student Profile</h1>
+                        <hr>
+                        <div class="row mb-3">
+                            <div class="col-12 col-md-6">
+                                <p class="fs-3 text-center text-md-start">{{ user.first_name | capfirst }} {{ user.last_name | capfirst }}</p>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-12 col-md-6">
+                                <strong class="fs-4">Programme:</strong>
+                                <p class="fs-5">{{ user_profile.programme }}</p>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <strong class="fs-4">Register Date:</strong>
+                                <p class="fs-5 mb-0">{{ user_profile.register_date }}</p>
+                                <p class="fs-6 text-secondary m-0">{{ user_profile.cohort }}</p>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-12 col-md-6">
+                                <strong class="fs-4">Email:</strong>
+                                <p class="fs-5">{{ user.email }}</p>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <strong class="fs-4">Phone Number:</strong>
+                                <p class="fs-5">{{ user_profile.phone_num }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if user.groups.all.0.name == "lecturer" %}
+                    <div>
+                        <h1 class="text-center text-lg-start">Lecturer Profile</h1>
+                        <hr>
+                        <div class="row mb-3">
+                            <div class="col-12 col-md-6">
+                                <p class="fs-3 text-center text-md-start">{{ user_profile.title }} {{ user.first_name | capfirst }} {{ user.last_name | capfirst }}</p>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-12 col-md-6">
+                                <strong class="fs-4">Email:</strong>
+                                <p class="fs-5">{{ user.email }}</p>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <strong class="fs-4">Phone Number:</strong>
+                                <p class="fs-5">{{ user_profile.phone_num }}</p>
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-12 col-md-6">
+                                <strong class="fs-4">Faculty:</strong>
+                                <p class="fs-5">{{ user_profile.faculty }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="d-flex justify-content-center mx-auto mt-4">
+                <a href="{% url 'edit_profile' %}" class="btn btn-primary mx-2">Edit Profile</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="profile_pic_modal" tabindex="-1" aria-labelledby="profile_pic_modalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST" enctype="multipart/form-data" action="{% url 'upload_profile_picture' %}">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="profile_pic_modalLabel">Choose a Profile Picture</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    {% csrf_token %}
+                    <div class="form-group">
+                        <input type="file" name="profile_picture" id="profile_picture" class="form-control" onchange="previewImage(event)">
+                    </div>
+                    <div id="image_preview" class="mt-3 text-center">
+                        <img id="preview_img" src="" alt="Profile Picture Preview" class="img-fluid rounded-circle" style="max-width: 250px; height: auto; display: none; height:250px;">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Upload</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock content %}
+
+{% block script %}
+<script>
+    function previewImage(event) {
+        const file = event.target.files[0];  
+        const reader = new FileReader();
+
+        reader.onload = function() {
+            const previewImg = document.getElementById('preview_img');
+            previewImg.src = reader.result;  
+            previewImg.style.display = 'block';  
+        }
+
+        if (file) {
+            reader.readAsDataURL(file);
+        }
+    }
+</script>
+{% endblock script %}

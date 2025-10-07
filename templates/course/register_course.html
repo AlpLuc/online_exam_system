@@ -1,0 +1,55 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="container-md mx-auto p-0 border border-grey shadow">
+    <div class="card mx-auto shadow">
+        <div class="card-body pb-5 pb-0">
+            <h3 class="text-center mb-3">Register Course</h3>
+            <hr>
+
+            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+                {% for course in course_list %}
+                <div class="col">
+                    <div class="card shadow-sm mx-3 h-100">
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title text-center">{{ course.name }}</h5>
+                            <hr class="my-2">
+                            <table class="table table-borderless">
+                                <tbody>
+                                    <tr>
+                                        <th scope="row">Programme:</th>
+                                        <td>{{ student.programme }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th scope="row">Course Code:</th>
+                                        <td>{{ course.code }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th scope="row">Lecturer:</th>
+                                        <td>
+                                            {{ course.lecturer.user.first_name|title }} 
+                                            {{ course.lecturer.user.last_name|title }}
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <!-- Register Button -->
+                            <div class="mt-auto">
+                                <a href="{% url 'register' course.id %}" class="btn btn-primary btn-sm w-100">Register</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="text-center mt-4 w-100">
+                    <h5>No course to register in your programme</h5>
+                </div>
+                {% endfor %}
+                
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}
+
+

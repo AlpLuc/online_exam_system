@@ -1,0 +1,91 @@
+{% extends "layout.html" %}
+
+{% block content %}
+{% if user_form.errors or lecturer_form.errors %}
+<div class="alert alert-danger">
+    <i class="bi bi-exclamation-triangle-fill"></i>
+    {{ user_form.errors }}
+    {{ lecturer_form.errors }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+{% endif %}
+
+<!-- Registration Form -->
+<div class="container-md my-4">
+    <div class="card mx-auto shadow" style="max-width: 70vw; font-size: 1rem;">
+        <div class="card-body p-3">
+            <h1 class="text-center mb-4" style="font-size: 1.5rem;">Lecturer Register</h1>
+
+            <form action="" method="POST">
+                {% csrf_token %}
+                
+                <!-- Username and Passwords -->
+                <div class="row mb-2">
+                    <div class="col-12">
+                        <label for="id_username" class="form-label">Lecturer ID</label>
+                        <input type="text" name="username" class="form-control" id="id_username" required maxlength="150">
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-12 col-md-6">
+                        <label for="id_password1" class="form-label">{{ user_form.password1.label }}</label>
+                        <input type="password" name="password1" class="form-control" id="id_password1" required autocomplete="new-password">
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <label for="id_password2" class="form-label">{{ user_form.password2.label|title}}</label>
+                        <input type="password" name="password2" class="form-control" id="id_password2" required autocomplete="new-password">
+                    </div>
+                </div>
+
+                <!-- Name Fields -->
+                <div class="row mb-2">
+                    <div class="col-12 col-md-4">
+                        <label for="id_title" class="form-label">{{ lecturer_form.title.label|title }}</label>
+                        <input type="text" name="title" class="form-control" id="id_title" placeholder="Dr.">
+                    </div>
+                    <div class="col-12 col-md-4">
+                        <label for="id_first_name" class="form-label">{{ user_form.first_name.label|title }}</label>
+                        <input type="text" name="first_name" class="form-control" id="id_first_name" required>
+                    </div>
+                    <div class="col-12 col-md-4">
+                        <label for="id_last_name" class="form-label">{{ user_form.last_name.label|title }}</label>
+                        <input type="text" name="last_name" class="form-control" id="id_last_name" required>
+                    </div>
+                </div>
+
+                <!-- Faculty Selection -->
+                <div class="row mb-2">
+                    <div class="col-12">
+                        <label for="id_faculty" class="form-label">{{ lecturer_form.faculty.label|title }}</label>
+                        <select name="faculty" class="form-select" id="id_faculty" required>
+                            <option value="" selected>Select a faculty</option>
+                            {% for faculty_obj in lecturer_form.fields.faculty.queryset %}
+                                <option value="{{ faculty_obj.id }}">{{ faculty_obj.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Email and Phone Number -->
+                <div class="row mb-2">
+                    <div class="col-12 col-md-6">
+                        <label for="id_email" class="form-label">{{ user_form.email.label|title }}</label>
+                        <input type="email" name="email" class="form-control" id="id_email" required maxlength="320">
+                    </div>
+                    <div class="col-12 col-md-6">
+                        <label for="id_phone_num" class="form-label">{{ lecturer_form.phone_num.label }}</label>
+                        <input type="tel" name="phone_num" class="form-control" id="id_phone_num" required>
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="d-flex justify-content-center mx-auto mt-4">
+                    <button type="submit" class="btn btn-primary" style="width:15vh;">Create</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock content %}
+

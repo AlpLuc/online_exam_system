@@ -1,0 +1,67 @@
+{% extends "layout.html" %}
+
+{% block content %}
+{% if exam.id == session_exam_id %}
+    Same exam detected
+{% endif%}
+<div class="container-lg" style="max-width: 70vw;">
+    <div class="card mx-auto shadow m-5" style="font-size: 1rem;">
+        <div class="card-body p-3 px-5">
+            <h1 class="text-center">Attention</h1>
+            <hr>
+            <div>
+                <h2>Exam Monitoring Agreement, {{exam.title}}</h2>
+                <p>Before you begin, please carefully review the monitoring measures in place to ensure a fair and secure examination process. By proceeding, you acknowledge and agree to the following:</p>
+                <ul>
+                                
+                    {% for setting in active_setting %}
+                        <li class="fw-bold">{{setting}} </li>
+                    {% endfor %}
+                </ul>
+                <p>These measures are implemented to uphold the principles of fairness and integrity. By clicking "<strong>I Agree</strong>" below, you confirm your understanding and acceptance of these conditions. If you have any questions or concerns, please contact your instructor or exam administrator before proceeding.</p>
+                
+                <hr>
+
+                <div class="text-center mt-3">
+                    <div class="d-flex justify-content-center my-3">
+                        <input class="mx-2" type="checkbox" id="agree_checkbox">
+                        <p class="m-0">I have read and agree to the exam rules</p>
+                    </div>    
+                    <a href="" id="agree_button" class="btn btn-primary" style="pointer-events: none; opacity: 0.5;" onclick="confirmStartExam(event);">I Agree</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}
+
+{% block script %}
+<script>
+    const checkbox = document.getElementById('agree_checkbox');
+    const button = document.getElementById('agree_button');
+
+    checkbox.addEventListener('change', function() {
+        if (checkbox.checked) {
+            // Enable the button when checked
+            button.style.pointerEvents = 'auto';
+            button.style.opacity = '1'; 
+        } else {
+            // Disable the button when unchecked
+            button.style.pointerEvents = 'none'; 
+            button.style.opacity = '0.5'; 
+        }
+    });
+
+
+    function confirmStartExam(event) {
+        event.preventDefault();  // Prevent the default action (i.e., redirection)
+
+        const userConfirmed = window.confirm("Are you sure you want to proceed with the exam?");
+        
+        if (userConfirmed) {
+            window.location.href = "{% url 'examination' exam.pk %}";  // Redirect to the exam page
+        }
+    }
+
+</script>
+{% endblock script %}

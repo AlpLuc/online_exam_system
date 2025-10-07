@@ -1,0 +1,375 @@
+{% extends "layout.html" %}
+{% load static %}
+{% load dict_extra %}
+
+{% block stylesheet %}<link rel="stylesheet" href="{% static 'css/examination.css'%}">{% endblock stylesheet %}
+
+{% block content %}
+<div class="alert alert-danger alert-dismissible fade show m-0" id="tab_switch_alert" role="alert" style="display:none;">
+    <p id="tab_switch_alert_text" class="m-0"></p>
+    <button type="button" class="btn-close" onclick="hide_tab_switch_alert();"></button>
+</div>
+
+<div class="row d-flex justify-content-center p-4 w-100">
+    <!--Left Column-->
+    <div id="left_col" class="card col-3 p-4 h-50" style="display:none;">
+        <h4 class="fw-bold">{{ exam.title }}</h4>
+        <h4>Time remaining: <span id="timer" class="fw-bold"></span></h4>
+        <hr>
+        <div class="btn-group row w-100">
+            <ul class="nav">
+                {% if mcq_question_list %}
+                <li class="nav-item col-4">
+                    <button id="mcq_btn" class="btn btn-primary w-100" onclick="showMCQ();">MCQ</button>
+                </li>
+                {% endif %}
+                {% if tf_question_list %}
+                <li class="nav-item col-4">
+                    <button id="tf_btn" class="btn btn-primary w-100" onclick="showTF();">TF</button>
+                </li>
+                {% endif %}
+                {% if essay_question_list %}
+                <li class="nav-item col-4">
+                    <button id="essay_btn" class="btn btn-primary w-100" onclick="showEssay();">Essay</button>
+                <li>
+                {% endif %}
+            </ul>
+        </div>
+        <hr>
+        <div>
+            {% if mcq_question_list %}
+                <h6><i class="bi bi-flag-fill text-danger"></i> MCQ questions</h6>
+                {% for question in mcq_question_list %}
+                    <button class="btn btn-light border border-1" id="mcq_flag_btn_{{forloop.counter}}" onclick="flagQuestion('mcq','mcq_flag_{{forloop.counter}}', 'mcq_flag_btn_{{forloop.counter}}', {{forloop.counter}})">
+                        {{forloop.counter}}
+                    </button>
+                {% endfor %}
+            {% endif %}
+
+            {% if tf_question_list %}
+                <h6><i class="bi bi-flag-fill text-danger"></i> TF questions</h6>
+                {% for question in tf_question_list %}
+                    <button class="btn btn-light border border-1" id="tf_flag_btn_{{forloop.counter}}" onclick="flagQuestion('tf','tf_flag_{{forloop.counter}}', 'tf_flag_btn_{{forloop.counter}}', {{forloop.counter}})">
+                        {{forloop.counter}}
+                    </button>
+                {% endfor %}
+            {% endif %}
+
+            {% if essay_question_list %}
+                <h6><i class="bi bi-flag-fill text-danger"></i> Essay questions</h6>
+                {% for question in essay_question_list %}
+                    <button class="btn btn-light border border-1" id="essay_flag_btn_{{forloop.counter}}" onclick="flagQuestion('essay','essay_flag_{{forloop.counter}}', 'essay_flag_btn_{{forloop.counter}}', {{forloop.counter}})">
+                        {{forloop.counter}}
+                    </button>
+                {% endfor %}
+            {% endif %}
+
+        </div>
+    </div>
+    <!--Right Column-->
+    <div id="right_col" class="col-9"  style="display:none;">
+        <!--Nav Bar-->
+        <div>
+            <ul class="nav nav-tabs">
+                {% if mcq_question_list %}
+                <li class="nav-item" onclick="showMCQ();">
+                    <button id="mcq_tab" class="nav-link">Multiple Choice Question</button>
+                </li>
+                {% endif %}
+                {% if tf_question_list %}
+                <li class="nav-item">
+                    <button id="tf_tab" class="nav-link" onclick="showTF();">True/False</button>
+                </li>
+                {% endif %}
+                {% if essay_question_list %}
+                <li class="nav-item">
+                    <button id="essay_tab" class="nav-link" onclick="showEssay();">Essay</button>
+                <li>
+                {% endif %}
+            </ul>
+        </div>
+        <!--Question Section-->
+        <form action="" id="examination_form" method=POST>
+            {% csrf_token %}
+            <div class="bg-white py-3 px-5 border rounded shadow">
+                <!--MCQ div-->
+                {% if mcq_question_list %}
+                <div id="mcq_question_div" style="display: none;">
+                    <h4 class="text-primary mb-3">Multiple Choice Questions</h4>
+                    <!--MCQ Questions-->
+                    <div class="card border-bottom p-3 mb-3">
+                        <!--Question-->
+                        {% for question in mcq_question_list %}
+                        <!--Flag-->   
+                        <div style="position: relative;">
+                            <div class="triangle" id="mcq_flag_{{forloop.counter}}"  style="display: none;"></div>
+                            <p class="fs-4 fw-bold">{{forloop.counter}}. {{ question.question }}</p>
+                            <!--Options-->
+                            <div class="ms-3">
+                                {% if exam.random_order %}
+                                    {% for option, value in question.options %}
+                                    <div class="form-check">
+                                        <input
+                                            class="border border-2 form-check-input mcq_checkbox" 
+                                            type="checkbox" 
+                                            value="{{ value }}" 
+                                            id="option_{{ forloop.counter }}" 
+                                            data-question-id="{{ question.id }}"
+                                            {% if value|stringformat:"s" in mcq_selected_answers|get_key_list:question.id %}
+                                                checked
+                                            {% endif %}                                    
+                                        > <!--Checkbox-->
+                                        <label class="fs-5 form-check-label" for="option_{{ forloop.counter }}">
+                                        {{ option }}
+                                        </label>
+                                    </div>
+                                    {% endfor %}
+                                {% else %}
+                                    {% for option, value in question.options.items %}
+                                    <div class="form-check">
+                                        <input
+                                            class="border border-2 form-check-input mcq_checkbox" 
+                                            type="checkbox" 
+                                            value="{{ value }}" 
+                                            id="option_{{ forloop.counter }}" 
+                                            data-question-id="{{ question.id }}"
+                                            {% if value|stringformat:"s" in mcq_selected_answers|get_key_list:question.id %}
+                                                checked
+                                            {% endif %}                                    
+                                        > <!--Checkbox-->
+                                        <label class="fs-5 form-check-label" for="option_{{ forloop.counter }}">
+                                        {{ option }}
+                                        </label>
+                                    </div>
+                                    {% endfor %}  
+                                {% endif %}
+                                
+                            </div>
+                        <hr class="my-3">
+                        </div>
+                        
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!--TF div-->
+                {% if tf_question_list %}
+                <div id="tf_question_div" style="display: none;">
+                    <h4 class="text-primary mb-3">True/False Questions</h4>
+                    <!--TF Questions-->
+                    <div class="border-bottom pb-3 mb-3">
+                        {% for question in tf_question_list %}
+                        <div style="position: relative;">
+                            <div class="triangle" id="tf_flag_{{forloop.counter}}"  style="display: none;"></div>
+                            <!--Question-->
+                            <p class="fs-4 fw-bold">{{forloop.counter}}. {{ question.question }}</p>
+                            <div class="form-check form-check-inline">
+                                <input 
+                                    class="border border-2 form-check-input tf_radio" 
+                                    type="radio" 
+                                    name="tf_{{ forloop.counter }}" 
+                                    id="true_{{ forloop.counter }}" 
+                                    value="1"
+                                    tf-question-id="{{ question.id }}"
+                                    {% if tf_selected_answers|get_key:question.id == "1" %}
+                                        checked
+                                    {% endif %}
+                                >
+                                <label class="fs-5 form-check-label" for="true_{{ forloop.counter }}">True</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                <input 
+                                    class="border border-2 form-check-input tf_radio" 
+                                    type="radio" 
+                                    name="tf_{{ forloop.counter }}" 
+                                    id="false_{{ forloop.counter }}" 
+                                    value="0"
+                                    tf-question-id="{{ question.id }}"
+                                    {% if tf_selected_answers|get_key:question.id == "0" %}
+                                        checked
+                                    {% endif %}
+                                >
+                                <label class="fs-5 form-check-label" for="false_{{ forloop.counter }}">False</label>
+                            </div>
+                        </div>
+                        <hr class="my-3">
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            
+                <!--Essay div-->
+                {% if essay_question_list %}
+                <div id="essay_question_div" style="display: none;">
+                    <h4 class="text-primary mb-3">Essay Questions</h4>
+                    <!--Essay Questions-->
+                    <div class="border-bottom pb-3 mb-3">
+                        <!--Question-->
+                        {% for question in essay_question_list %}
+                            <div style="position: relative;">
+                                <div class="triangle" id="essay_flag_{{forloop.counter}}"  style="display: none;"></div>
+                                <p class="fs-4 fw-bold">{{forloop.counter}}.{{ question.question }}</p>
+                                <textarea 
+                                class="form-control mb-3 essay-textarea" 
+                                essay-question-id="{{question.id}}" 
+                                rows="5" 
+                                style="height:30vw; resize: none;"
+                                >{% if essay_selected_answers|get_key:question.id != None %}{{essay_selected_answers|get_key:question.id}}{% endif %}</textarea>
+                                <hr class="my-3">
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            
+            <div class="m-3">
+                <button class="btn btn-primary" type="submit" onclick="handleSubmit(event);">Submit</button>
+            </div>
+
+        </form>
+
+        
+    </div>
+</div>
+
+<div id="full_screen_btn" style="display:block;">
+    <h1><span id="timer" class="fw-bold"></span></h1>
+    <h2 class="text-center">Exam Started, Go Full Screen by Pressing the Button Below</h2>
+        <div class="d-flex justify-content-center">
+            <button id="full_screen_btn" class="btn btn-lg btn-primary"onclick="fullscreen();">Full Screen</button>
+        </div>
+</div>
+
+
+
+
+
+
+<!-- Modal -->
+<div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="staticBackdropLabel">WARNING</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            Recording interruptions/termination will immediately terminate the exam.
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" data-bs-dismiss="modal">I Understand</button>
+        </div>
+      </div>
+    </div>
+</div>
+
+
+<button id="scrollToTopBtn" class="btn border border-2 rounded-circle shadow position-fixed bottom-0 start-0 m-3" title="Move to top page" onclick="scrollToTop();" style="width: 50px; height: 50px; background-color: white;">
+    <i class="bi bi-arrow-up"></i>
+</button>
+{% endblock content %}
+
+{% block script %}
+  <script src="{% static 'js/examination.js' %}"></script>
+  <script>
+    function checkQuestion(){
+        {% if mcq_question_list %} 
+            document.getElementById("mcq_tab").classList.add('active');
+            document.getElementById("mcq_question_div").style.display = "block";
+        {% elif tf_question_list %}
+            document.getElementById("tf_tab").classList.add('active');
+            document.getElementById("tf_question_div").style.display = "block";
+        {% elif essay_question_list %}
+            document.getElementById("essay_tab").classList.add('active');
+            document.getElementById("essay_question_div").style.display = "block";
+        {% endif %}
+    }
+    
+    async function handleExamStart() {
+        {% if tracking_setting.capture_screen %}
+            const isCaptureStarted = await startScreenCapture({{exam.id}});
+        {% else %}
+            const isCaptureStarted = true;
+        {% endif%}
+        
+        if (isCaptureStarted) {
+            checkQuestion();
+            startCountdown({{ time_remaining }});        
+        }
+    }
+
+    //Initiate Exam
+    let is_picker_active = false; // Track if user is setting up screen recording
+    let tab_switch = false; // Track the last tab switch
+    let unwated_behaviour = false; // Track unwanted behaviour to trigger upload for screen recordings
+    let flagged_question_dict = {{flagged_questions|safe}};
+
+    //For screen recording
+    let video_uploading = false;
+    let full_screen = false;
+    var media_recorder;
+    var chunks;
+    handleExamStart(); 
+
+    // Initiate flag question in session
+    if (Object.keys({{flagged_questions|safe}}).length != 0){
+        initiateFlaggedQuestion({{flagged_questions|safe}});
+    }
+
+    //Start logging
+    logBrowserActivity();
+
+    //Restriction
+    preventBrowserBack();
+
+    {% if exam.copy_paste_restrict %}               
+        restrictCopyCutPaste(); 
+    {% endif %}   
+
+    {% if tracking_setting.tab_switch %}
+        restrictTabSwitching({{tab_switch_counter|safe}});
+    {% endif %} 
+    
+    {% if tracking_setting.browser_activity %}
+        setInterval(function () { 
+            sessionSaveSelectedAnswers()
+        }, 5000); // Save answer to session every 5 seconds
+    {% endif %}
+
+    window.addEventListener('beforeunload', function(event) {
+        {% if tracking_setting.capture_screen %}
+            stopScreenCapture();
+        {% endif %}
+    });
+
+
+    function fullscreen(){
+        full_screen = true;
+        document.getElementById("full_screen_btn").style.display = "none";
+
+        if (document.documentElement.requestFullscreen) {
+            document.documentElement.requestFullscreen();
+          } else if (document.documentElement.webkitRequestFullscreen) { // For Safari
+            document.documentElement.webkitRequestFullscreen();
+          } else if (document.documentElement.msRequestFullscreen) { // For IE11
+            document.documentElement.msRequestFullscreen();
+          }
+    }
+
+    document.addEventListener('fullscreenchange', () => {
+        if(full_screen){
+            document.getElementById("left_col").style.display = "block";
+            document.getElementById("right_col").style.display = "block";
+            full_screen = false;
+        }
+        else{
+            document.getElementById("left_col").style.display = "none";
+            document.getElementById("right_col").style.display = "none";
+            document.getElementById("full_screen_btn").style.display = "block";
+        }
+    });
+
+  </script>
+{% endblock script %}

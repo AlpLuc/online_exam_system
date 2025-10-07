@@ -1,0 +1,8 @@
+.exam_btn:hover{
+    filter: brightness(0.9) !important;
+}
+
+.shadow-hover:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Adjust shadow intensity as needed */
+    cursor: pointer;
+}

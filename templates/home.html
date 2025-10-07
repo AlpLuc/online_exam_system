@@ -1,0 +1,227 @@
+{%extends "layout.html"%}
+{% load static %}
+
+{% block content%}
+<div class="d-flex m-0 p-0 w-100 justify-content-center">
+    <div class="row position-relative w-100">
+        <div class="col-12 p-0">
+            <div class="image-container w-100" style="height: 400px; overflow: hidden;">
+                <img src="{{ site_info.home_image.url }}" alt="" class="img-fluid w-100 h-100 object-fit-cover">
+            </div>
+            <div class="position-absolute top-50 start-50 translate-middle text-center text-white p-3 bg-dark bg-opacity-50 w-100 h-100">
+                <div class="position-absolute top-50 start-50 translate-middle">
+                    <h1>{{ site_info.title }}</h1>
+                    
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if user.groups.all.0.name == "student" %}
+<div class="container-fluid mt-5 p-0 w-100">
+    <h1 class="text-start fw-bold m-5 mb-2">Welcome, {{ user.first_name|title }} {{ user.last_name|title }}</h1>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container-fluid">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                {% if info.started_exams %}
+                <li class="nav-item">
+                    <a class="nav-link" href="#ongoing_exam">Ongoing Exams</a>
+                </li>
+                {% endif %}
+                {% if info.upcoming_exams %}
+                <li class="nav-item">
+                    <a class="nav-link" href="#upcoming_exam">Upcoming Exams</a>
+                </li>
+                {% endif %}
+                <li class="nav-item">
+                    <a class="nav-link" href="#graded_exam">Graded Exam</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <hr class="m-0">
+
+    <div class="bg-white w-100 p-5 rounded">
+        <!-- Exams Section -->
+        {% if info.started_exams %}
+            <div class="mb-4">
+                <h2 id="ongoing_exam" class="my-3">Ongoing Exams</h2>
+                <div class="row">
+                    {% for exam in info.started_exams %}
+                        <div class="col-md-6 mb-4">
+                            <a href="{% url 'student_view_exam' %}" class="text-decoration-none ">
+                                <div class="card shadow-sm">
+                                    <div class="card-header bg-primary text-white">
+                                        <h5 class="card-title">{{ exam.title }}</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <p class="card-text">
+                                            <strong>Course:</strong> {{ exam.question_bank.course }} <br>
+                                            <strong>Start Date:</strong> {{ exam.start_date_time|date:"d F Y, h:i A" }}<br>
+                                            <strong>End Date:</strong> {{ exam.end_date_time|date:"d F Y, h:i A" }}
+                                        </p>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+            <hr>
+        {% endif %}
+        
+        {% if info.upcoming_exams %}      
+            <div class="mb-4">
+                <h2 id="upcoming_exam">Upcoming Exams</h2>
+                <div class="row">
+                    {% for exam in info.upcoming_exams %}
+                        <div class="col-md-6 mb-4">
+                            <a href="{% url 'student_view_exam' %}" class="text-decoration-none ">
+                                <div class="card shadow-sm">
+                                    <div class="card-body">
+                                        <h5 class="card-title">{{ exam.title }}</h5>
+                                        <h6 class="card-subtitle mb-2 text-muted">{{ exam.question_bank.course }}</h6>
+                                        <p class="card-text">
+                                            <strong>Start Date:</strong> {{ exam.start_date_time|date:"d F Y, h:i A" }}<br>
+                                            <strong>End Date:</strong> {{ exam.end_date_time|date:"d F Y, h:i A" }}
+                                        </p>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
+
+        <!--Graded Exams-->
+        <h2 id="graded_exam" class="mt-5 my-3">Graded Exams</h2>
+        <table class="table table-bordered table-hover">
+            <thead class="table-primary">
+                <tr>
+                    <th class="col" style="width:2%"></th>
+                    <th class="col" style="width:50%">Title</th>
+                    <th class="col" style="width:25%">Course</th>
+                    <th class="col" style="width:13%">Total Marks</th>
+                    <th class="col" style="width:10%">Attempt</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for graded_exam in info.graded_exams %}
+                    <tr onclick="window.location='{% url 'student_view_completed_exam_detail' graded_exam.id  %}'">
+                        <td class="text-end">{{forloop.counter}}</td>
+                        <td>{{ graded_exam.exam.title }}</td>
+                        <td>{{ graded_exam.exam.question_bank.course }}</td>
+                        <td>{{ graded_exam.total_mark }}</td>
+                        <td>{{ graded_exam.attempt }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% elif user.groups.all.0.name == "lecturer" %}
+<div class="container-fluid mt-5 p-0 w-100">
+    <h1 class="text-start fw-bold m-5 mb-2">Welcome, {{ user.first_name|title }} {{ user.last_name|title }}</h1>
+    
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container-fluid">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'exam_list' %}">Exam</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'question_bank_list' %}">Question Bank</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#exams_to_grade">Grade Exam</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <hr class="m-0">
+    <div class="bg-white p-4 rounded shadow-sm">
+        <h3 id="exams_to_grade" class="mb-4">Exams to Grade</h3>
+        {% if info.non_graded_exams %}
+        <table class="table table-hover">
+            <thead > 
+                <tr>
+                    <th class="col" style="width:5%;"></th>
+                    <th class="col" style="width:95%;">Exam</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for exam in info.non_graded_exams %}
+                    <tr onclick="window.location='{% url 'lecture_view_completed_exam' %}?exam_id={{ exam.id }}'">                       
+                            <td><span class="badge bg-primary rounded-pill me-2">{{ forloop.counter }}</span></td>
+                            <td>{{ exam.title }}</td>                       
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+            <p>No exams needing grading at the moment.</p>
+        {% endif %}
+    </div>
+</div>
+{% elif user.groups.all.0.name == "admin" %}
+<div class="container-fluid mt-5 p-0 w-100">
+    <h1 class="text-start fw-bold m-5 mb-2">Welcome {{user.first_name|title}} {{user.last_name|title}}</h1>
+    <hr class="m-0">
+    <div class="text-center bg-white p-4 rounded shadow-sm">
+        <h3 class="mb-3">Click the button below to head to the Admin Panel</h3>
+        <a href="/admin/" class="btn btn-primary">Admin Panel</a>
+    </div>
+</div>
+{% else %}
+<div class="container mt-5">
+    <!-- Introduction Section -->
+    <div class="mb-5">
+        <h2 class="text-primary">Introduction</h2>
+        <p class="lead">{{ site_info.introduction|safe }}</p>
+    </div>
+
+    <!-- Description Section -->
+    <div class="mb-5">
+        <h2 class="text-primary">Description</h2>
+        <p class="lead">{{ site_info.description|safe }}</p>
+    </div>
+</div>
+{% endif%}
+
+{% endblock content %}
+
+{% block footer %}
+<footer class="bg-dark text-white py-4 mt-5">
+    {% if user.groups.all.0.name == "student" %}
+    {% elif user.groups.all.0.name == "lecturer" %}
+    {% elif user.groups.all.0.name == "admin" %}
+    {% else %}
+    <div class="container">
+        <!-- Registration Prompt in Footer -->
+        <div class="d-flex justify-content-center align-items-center mb-3">
+            <p class="mb-0">Don't have an account?</p>
+            <a href="{% url 'user_login' %}" class="btn btn-link text-white py-0 my-0">Register Here</a>
+        </div>        
+    </div>
+    {% endif%}
+    <div class="row align-top m-3 px-3">
+        <div class="text-center mb-2 col-4">
+             <i class="bi bi-envelope-fill me-2 fs-6"></i>{{site_info.email}}
+        </div>
+        <div class="text-center mb-2 col-4">
+            <i class="bi bi-telephone-fill me-2 fs-6"> </i> {{site_info.contact}}
+        </div>
+        <div class="text-center col-4">
+            <i class="bi bi-geo-alt-fill me-2 fs-6"></i> {{site_info.address}}
+        </div>
+    </div>
+
+    <div class="text-center align-items-center">
+        <p class="fst-italic mb-0">This web application is a final year project, and all content is created by Lucas Tan Guang Quan, BI21110172.</p>
+    </div> 
+
+</footer>
+{% endblock footer %}

@@ -1,0 +1,125 @@
+{% extends 'layout.html'%}
+{% load static %}
+{% load q_dict_extra %}
+
+{% block stylesheet %}<link rel="stylesheet" href="{% static 'css/question.css'%}">{% endblock stylesheet %}
+
+
+{% block content %}
+<div class="container-md mx-auto p-0 border border-grey shadow">
+  <div class="card mx-auto shadow">
+    <div class="card-body p-0 pb-0">
+      <div class="postion-sticky p-3 pb-1 top-0 row">
+        <a class="col-md-5 text-decoration-none text-dark" href="{% url 'question_list' question_bank.pk %}"><h2>{{question_bank.title|capfirst}}, Question List</h2></a>
+
+        <form method="GET" class="col-4 row" id="searchFilterForm">
+          <!--search-->
+          <div class="col-md-6 d-flex my-auto">
+            <i class="bi bi-search my-auto mx-1"></i>
+            <input type="text" name="search" class="form-control" placeholder="Search questions" value="{{ search_query }}">
+          </div>
+                    
+          <!--filter-->
+          <div class="col-md-6 d-flex my-auto">
+            <i class="bi bi-funnel-fill my-auto mx-1"></i>
+            <select name="filter" class="form-select py-0" onchange="document.getElementById('searchFilterForm').submit()" >
+              <option value="">Filter by Type</option>
+              {% for type in question_types %}
+                <option value="{{ type }}" {% if filter_type == type %}selected{% endif %}>{{ type | upper}}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+        </form>
+
+        <!--create button-->
+        <div class="col-md-3 text-end my-auto">
+          <a class="btn btn-primary" href="{% url 'create_question'%}?id_question_bank={{ question_bank.id }}" role="button">Create Question</a>
+        </div>
+      </div>
+      
+      <hr class="m-1">
+      
+      <div class="px-3">
+        <table class="table table-hover">
+          <thead>
+            <tr>
+              <th scope="col" style="width: 5%;">#</th>
+              <th scope="col" style="width: 50%;">Question</th>
+              <th scope="col" style="width: 15%;">Type</th>
+              <th scope="col" style="width: 10%;">Mark</th>
+              <th scope="col" style="width: 20%;">Action <i class="bi bi-question-circle text-info shadow-hover-circle" title="Unable to delete questions used in an exam"></i></th>
+            </tr>
+          </thead>
+          <tbody>
+          {% for question_obj in questions %}
+            <tr class="clickable-row shadow-hover" onclick="window.location='{% url 'view_question' question_obj.pk %}'" data-bs-toggle="tooltip" data-bs-placement="top" title="View question">
+              <th scope="row">{{forloop.counter}}</th>
+              <td>{{question_obj.question}}</td>
+              <td>{{question_obj.question_type|upper}}</td>
+              <td>{{question_obj.marks}}</td>
+              <td>
+                <a href="{% url 'edit_question' question_obj.pk %}" class="btn btn-primary">Edit</a> 
+                <a href="{% url 'delete_question' question_obj.pk %}" class="btn btn-primary" {% if used_questions and used_questions|get_item:question_obj.pk %}style="pointer-events: none; opacity: 0.5;" {% endif %} onclick="confirmDelete(event);">Delete</a>
+              </td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+
+        <!-- Pagination Controls -->
+        <nav class="my-3">
+          <ul class="pagination justify-content-center pagination-clean">
+              {% if questions.has_previous %}
+              <li class="page-item">
+                  <a class="page-link" href="?page={{ questions.previous_page_number }}" aria-label="Previous">
+                      <span aria-hidden="true">&laquo;</span>
+                  </a>
+              </li>
+              {% else %}
+              <li class="page-item disabled">
+                  <a class="page-link" href="#" aria-label="Previous">
+                      <span aria-hidden="true">&laquo;</span>
+                  </a>
+              </li>
+              {% endif %}
+
+              {% with questions.number|add:"-2" as start_page %}
+              {% with questions.number|add:"2" as end_page %}
+              {% for num in questions.paginator.page_range %}
+              {% if num >= start_page and num <= end_page %}
+              <li class="page-item {% if questions.number == num %}active{% endif %}">
+                  <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+              </li>
+              {% endif %}
+              {% endfor %}
+              {% endwith %}
+              {% endwith %}
+
+              {% if questions.has_next %}
+              <li class="page-item">
+                  <a class="page-link" href="?page={{ questions.next_page_number }}" aria-label="Next">
+                      <span aria-hidden="true">&raquo;</span>
+                  </a>
+              </li>
+              {% else %}
+              <li class="page-item disabled">
+                  <a class="page-link" href="#" aria-label="Next">
+                      <span aria-hidden="true">&raquo;</span>
+                  </a>
+              </li>
+              {% endif %}
+          </ul>
+        </nav>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock content %}
+
+{% block script %}
+  <script src="{% static 'js/question.js' %}"></script>
+{% endblock script %}
+

@@ -1,0 +1,177 @@
+{% extends "layout.html" %}
+{% load static %}
+{% load ce_dict_extra %}
+
+{% block content %}
+<div class="container-md mx-auto pt-4 px-4">
+    <button title="Download Exam Report" 
+            onclick="generatePDF({{pages}})" 
+            class="btn btn-primary btn-lg border border-2">
+            Download Report <i class="bi bi-download"></i>
+    </button>
+</div>
+
+
+<div id="general_content" class="container-md mx-auto p-4">
+    <!--Average-->
+    <div class="card mx-auto shadow-sm">
+        <div class="card-body p-4">
+            <h3 class="card-title mb-2">Exam Performance Summary</h3>
+            <h6 class="text-secondary my-1">{{start_date|date:"d F Y"}} - {{end_date|date:"d F Y"}}</h6>
+            <hr>
+            <!-- Average, Highest, and Lowest Marks -->
+            <div class="row mb-3">
+                <div class="col-12 col-md-4">
+                    <h5>Average Mark</h5>
+                    <p>{{mark_report.average_marks}} / {{full_mark}}</p>
+                </div>
+                <div class="col-12 col-md-4">
+                    <h5>Highest Mark</h5>
+                    <p>{{mark_report.highest_mark}} / {{full_mark}}</p>
+                </div>
+                <div class="col-12 col-md-4">
+                    <h5>Lowest Mark</h5>
+                    <p>{{mark_report.lowest_mark}} / {{full_mark}}</p>
+                </div>
+            </div>
+
+            <div class="row mb-4">
+                <div class="col-12 col-md-6">
+                    <h5>Average Time Taken</h5>
+                    <p>{{average_time|seconds_to_minutes}}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--Charts-->
+<div id="chart_content" class="container-md mx-auto p-4">
+    <div class="card mx-auto shadow-sm">
+        <div class="card-body p-4">
+            <!-- Multiple Choice Questions -->
+            {% if mcq_corrects %}
+            <div class="m-5">
+                <h4>Multiple Choice Questions</h4>
+                <canvas id="mcq_bar_chart" class="mb-3" style="width: 400px; height: 120px;"></canvas>
+            </div>
+            {% endif %}
+
+            <!-- True/False Questions -->
+            {% if tf_corrects %}
+            <div class="m-5">
+                <h4>True/False Questions</h4>
+                <canvas id="tf_bar_chart" class="mb-3" style="width: 400px; height: 120px;"></canvas>
+            </div>
+            {% endif %}
+
+
+            <!-- Essay Questions -->
+            {% if average_essay_mark %}
+            <div class="m-5">
+                <h4>Essay Questions</h4>
+                <canvas id="essay_bar_chart" class="mb-3" style="width: 400px; height: 120px;"></canvas>
+            </div>
+            {% endif %}            
+        </div>
+    </div>
+</div>
+
+<!--Student-->                    
+{% if pages == 1 %}
+<div id="student_content1" class="container-md mx-auto p-4">
+    <div class="card mx-auto shadow-sm">
+        <div class="card-body p-4">
+            <h3 class="mb-4">Student Individual Performance</h3>
+            
+            <table class="table table-bordered table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th>Name</th>
+                        <th>Completion Time (second)</th>
+                        <th>Attempt</th>
+                        <th>Marks</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for exam in completed_exams %}                      
+                        <tr>
+                            <td>{{ exam.student.user.first_name }} {{ exam.student.user.last_name }}</td>
+                            <td>{{ exam.time_taken }}</td>
+                            <td>{{ exam.attempt }}</td>
+                            {% if exam.exam_passed %}
+                                <td>{{ exam.total_mark }} / {{ exam.full_mark }}</td>
+                            {% else %}
+                                <td class="text-danger">FAIL</td>
+                            {% endif %}
+                        </tr>                      
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% else %}
+    {% for group in student_grp40 %}
+        <div id="student_content{{forloop.counter}}" class="container-md mx-auto p-4">
+            <div class="card mx-auto shadow-sm">
+                <div class="card-body p-4">
+                    {% if forloop.counter == 1 %}<h3 class="mb-4">Student Individual Performance</h3>{% endif %}
+                    <table class="table table-bordered table-hover">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Name</th>
+                                <th>Completion Time (second)</th>
+                                <th>Attempt</th>
+                                <th>Marks</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for exam in group %}
+                                <tr>
+                                    <td>{{ exam.student.user.first_name }} {{ exam.student.user.last_name }}</td>
+                                    <td>{{ exam.time_taken }}</td>
+                                    <td>{{ exam.attempt }}</td>
+                                    {% if exam.exam_passed %}
+                                        <td>{{ exam.total_mark }} / {{ exam.full_mark }}</td>
+                                    {% else %}
+                                        <td class="text-danger">FAIL</td>
+                                    {% endif %}
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    {% endfor %} 
+{% endif %}
+
+
+
+{% endblock content %}
+
+{% block script %}
+    <script src="{% static 'js/completed_exam.js' %}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+
+
+    <script>
+        {% if mcq_corrects %}
+            displayChart({{ mcq_corrects.values|safe }}, 'mcq_bar_chart', 'bar', 'blue', 'Number of Correct Answers')
+        {% endif %}
+        
+        {% if tf_corrects %}
+            displayChart({{ tf_corrects.values|safe }}, 'tf_bar_chart', 'bar', 'blue', 'Number of Correct Answers')
+        {% endif %}
+
+        {% if average_essay_mark %}
+            displayChart({{ average_essay_mark.values|safe }}, 'essay_bar_chart', 'bar', 'green', 'Average Marks')
+        {% endif %}
+    </script>  
+    
+
+{% endblock script %}

@@ -1,0 +1,120 @@
+{% extends "layout.html" %}
+{% load static %}
+
+{% block stylesheet %}<link rel="stylesheet" href="{% static 'css/completed_exam.css'%}">{% endblock stylesheet %}
+
+{% block content %} 
+<div class="container-md mx-auto p-0 bg-white border border-grey shadow">
+    <div class="card mx-auto">
+        <div class="card-body p-0 pb-0">                      
+            <div class="p-3 pb-1 top-0 row">
+                <a class="col-md-6 text-decoration-none text-dark" href="{% url 'student_view_completed_exam' %}">
+                    <h2>Completed Exam</h2>
+                </a>
+                <form method="GET" class="col-6 row" id="searchFilterForm">
+                    <input type="hidden" name="page" value="{{ request.GET.page }}">
+                    <!--search-->
+                    <div class="col-md-6 d-flex my-auto">
+                        <i class="bi bi-search my-auto mx-1"></i>
+                        <input type="text" name="search" class="form-control py-0" placeholder="Search exam" value="{{ request.GET.search }}">
+                    </div>
+                            
+                    <!--filter-->
+                    <div class="col-md-6 d-flex my-auto">
+                        <i class="bi bi-funnel-fill my-auto mx-1"></i>
+                        <select name="filter" class="form-select py-0" onchange="document.getElementById('searchFilterForm').submit()" >
+                            <option value="">Filter by course</option>
+                            {% for course in course_list %}
+                                <option value={{ course.id }} {% if filter_type|add:0 == course.id %}selected{% endif %}>{{ course.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <hr class="m-1"> 
+            
+            <div class="px-3">
+                <table class="table table-hover">
+                    <thead>
+                    <tr>
+                        <th scope="col" style="width: 5%;">#</th>
+                        <th scope="col" style="width: 50%;">Exam</th>
+                        <th scope="col" style="width: 15%;">Marks</th>  
+                        <th scope="col" style="width: 10%;">Course</th>
+                        <th scope="col" style="width: 5%;">Attempt</th>                                                              
+                        <th scope="col" style="width: 20%;">Completed At</th>                                        
+                    </tr>
+                    </thead>
+                    <tbody>
+                        {% for completed_exam in completed_exams %}
+                        <tr class="shadow-hover"  onclick="window.location='{% url 'student_view_completed_exam_detail' completed_exam.id %}'">    
+                            <th scope="row"> {{forloop.counter}} </th>
+                            <td> {{ completed_exam.exam.title }}</td>
+                            {% if  not completed_exam.exam_passed %}
+                                <td class="text-light bg-danger"><strong>Fail</strong></td>
+                            {% else %}
+                                <td> {{ completed_exam.total_mark}} / {{completed_exam.full_mark}} </td>
+                            {% endif %}
+                            <td> {{ completed_exam.exam.question_bank.course.name}} </td>
+                            <td> {{ completed_exam.attempt}} </td>
+                            <td> {{ completed_exam.completed_at|date:"d/m/Y H:i" }} </td>
+                        </tr>
+                        {% endfor %}
+                        
+                    </tbody>                
+                </table>
+            </div>
+            
+            <!--Pagination-->
+            <nav class="my-3">
+                <ul class="pagination justify-content-center pagination-clean">
+                    {% if completed_exams.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?exam_id={{ request.GET.exam_id }}&page={{ completed_exams.previous_page_number }}&search={{request.GET.search}}&filter={{request.GET.filter}}" aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled">
+                        <a class="page-link" href="#" aria-label="Previous">
+                            <span aria-hidden="true">&laquo;</span>
+                        </a>
+                    </li>
+                    {% endif %}
+    
+                    {% with completed_exams.number|add:"-2" as start_page %}
+                    {% with completed_exams.number|add:"2" as end_page %}
+                    {% for num in completed_exams.paginator.page_range %}
+                    {% if num >= start_page and num <= end_page %}
+                    <li class="page-item {% if completed_exams.number == num %}active{% endif %}">
+                        <a class="page-link" href="?exam_id={{ request.GET.exam_id }}&page={{ num }}&search={{request.GET.search}}&filter={{request.GET.filter}}">{{ num }}</a>
+                    </li>
+                    {% endif %}
+                    {% endfor %}
+                    {% endwith %}
+                    {% endwith %}
+    
+                    {% if completed_exams.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?exam_id={{ request.GET.exam_id }}&page={{ completed_exams.next_page_number }}&search={{request.GET.search}}&filter={{request.GET.filter}}" aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled">
+                        <a class="page-link" href="#" aria-label="Next">
+                            <span aria-hidden="true">&raquo;</span>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+{% endblock content %}
+
+{% block script %}
+    <script src="{% static 'js/completed_exam.js' %}"></script>
+{% endblock script %}

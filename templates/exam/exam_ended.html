@@ -1,0 +1,26 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="container-lg my-4 w-50">
+    <div class="card mx-auto shadow-lg border-0">
+        <div class="card-body p-4">
+
+            {% if terminate %}
+                <h3 class="text-danger">Exam Terminated</h3>
+                Number of tab switching exceeds the limit<br>
+                <hr> 
+            {% else %}
+                <h3>Exam Has Ended</h3>
+                <hr> 
+            {% endif %}    
+
+            {% if completed_exam.graded %}
+                Click <a href="{% url 'student_view_completed_exam_detail' completed_exam.id %}">here</a> to review exam
+            {% else %}
+                Click <a href="{% url 'student_view_exam' %}">here</a> to redirect back to exam page
+            {% endif %}
+
+        </div>
+    </div>
+</div>
+{% endblock content %}

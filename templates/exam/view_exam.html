@@ -1,0 +1,136 @@
+{% extends "layout.html" %}
+{% load static %}
+
+{% block stylesheet %}<link rel="stylesheet" href="{% static 'css/exam.css'%}">{% endblock stylesheet %}
+
+{% block content %}
+<div class="container-lg my-4" style="max-width: 85vw;">
+    <div class="card mx-auto shadow" style="font-size: 1rem;">
+        <div class="card-body p-3">
+            <div class="d-flex m-0">
+                <h2 class="m-0">View Exam</h2>
+                <i class="bi bi-question-circle text-info shadow-hover-circle mx-2" title="Unable to delete exam used in that has completed exams"></i>
+            </div>
+            
+            <hr>
+            <!-- Info Div -->
+            <div class="row mx-3">
+                <!-- Exam/Tracking Setting Div -->
+                <div class="col-md-6 d-flex flex-column">
+                    <!-- Toggle Buttons -->
+                    <div class="d-flex justify-content-start mb-3">
+                        <button class="btn btn-primary border border-2 rounded-pill me-2" id="exam_btn" onclick="showExamSetting();">Exam Setting</button>
+                        <button class="btn border border-2 rounded-pill" id="tracking_btn" onclick="showTrackingSetting();">Tracking Setting</button>
+                    </div>
+                    <!--Exam Info div-->
+                    <div id="exam_div" class="h-100">
+                        <table class="table table">
+                            <tbody>
+                                <tr>
+                                    <td class="col-4"><strong>Title:</strong></td>
+                                    <td>{{ exam.title }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="col-4"><strong>Question Bank:</strong></td>
+                                    <td>{{ exam.question_bank }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="col-4"><strong>Start Date & Time:</strong></td>
+                                    <td>{{ exam.start_date_time }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="col-4"><strong>End Date & Time:</strong></td>
+                                    <td>{{ exam.end_date_time }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="col-4"><strong>Exam Status:</strong></td>
+                                    <td>{{ exam.exam_status }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="col-4"><strong>Total Questions:</strong></td>
+                                    <td>{{ exam.total_question }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="col-4"><strong>Duration (minutes):</strong></td>
+                                    <td>{{ exam.duration }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="col-4"><strong>Total Attempts Allowed:</strong></td>
+                                    <td>{{ exam.total_attempt }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="col-4"><strong>Cohort:</strong></td>
+                                    <td>{{ exam.cohort }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <!--Tracking Setting div-->
+                    <div id="tracking_div" class="h-100" style="display: none;">
+                        <table class="table table">
+                            <tbody>
+                                <tr>
+                                    <td class="col-4"><strong>Capture Screen:</strong></td>
+                                    <td>{{ tracking_setting.capture_screen|yesno:"Enabled,Disabled" }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="col-4"><strong>Tab Switch Monitoring:</strong></td>
+                                    <td>{{ tracking_setting.tab_switch|yesno:"Enabled,Disabled" }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="col-4"><strong>Tab Switch Limit:</strong></td>
+                                    <td>{{ tracking_setting.tab_switch_limit }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="col-4"><strong>Browser Activity Monitoring:</strong></td>
+                                    <td>{{ tracking_setting.browser_activity|yesno:"Enabled,Disabled" }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Question Div -->
+                <div id="ques_div" class="col-md-6 overflow-auto">
+                    <table class="table table-striped">
+                        <thead style="position: sticky; top: 0; background-color: white; z-index: 1;">
+                            <tr>
+                                <th scope="col" style="width: 5%;">#</th>
+                                <th scope="col" style="width: 55%;">Question</th>
+                                <th scope="col" style="width: 20%;">Type</th>
+                                <th scope="col" style="width: 20%;">Mark</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ques_tbody">
+                            {% for question in question_list %}
+                            <tr>
+                                <td>{{ forloop.counter }}</td>
+                                <td>{{ question.question }}</td>
+                                <td>{{ question.question_type }}</td>
+                                <td>{{ question.marks }}</td>
+                            </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="4">No questions added yet.</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-center mt-4">
+                    <a href="{% url 'edit_exam' exam.id %}" class="btn btn-primary mx-2">Edit Exam</a>
+                    {% if not has_completed_exam %}
+                        <a href="{% url 'delete_exam' exam.id %}" class="btn btn-danger mx-2" onclick="confirm_delete(event);">Delete</a>
+                    {% endif %}
+                    
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}
+
+{% block script %}
+    <script src="{% static 'js/exam.js' %}"></script>
+{% endblock script %}

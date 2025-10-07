@@ -1,0 +1,118 @@
+{% extends "layout.html" %}
+
+{% block content %}
+{% if messages %}
+    {% for message in messages %}
+        <div class="alert alert-{{message.tags}} alert-dismissible fade show m-0" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    {% endfor %}
+{% endif %}
+
+
+<div class="container-lg" style="max-width: 85vw;">
+    <div class="card mx-auto shadow" style="font-size: 1rem;">
+        <div class="card-body p-3">
+            <h2 class="text-center">Exams</h2>
+            <hr>
+            {% for exam_list in exam_list_list %}
+                <h4 class="mt-4">
+                    {% if forloop.counter == 1 %}
+                        Ongoing Exams:
+                    {% elif  forloop.counter == 2 %}
+                        Upcoming Exams:                    
+                    {% else %}
+                        Closed Exams:
+                    {% endif %}
+                </h4>
+                <hr>
+                <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+                {% for exam in exam_list %}
+                    {% if exam.exam_status %}
+                        <div class="col">
+                            <div class="card bg-primary p-3 shadow-sm">
+                                <div class="row">
+                                    <div class="d-flex flex-column text-white px-3 mb-2">
+                                        <div>
+                                            <h5 class="mb-0 flex-grow-1">{{ exam.title }}</h5>
+                                        </div>
+                                        <div>
+                                            <span class="status-dot" 
+                                            style="
+                                            height: 10px; 
+                                            width: 10px; 
+                                            border-radius: 50%; 
+                                            display: inline-block; 
+                                            background-color: 
+                                            {% if now < exam.start_date_time %}
+                                                yellow;
+                                            {% elif now >= exam.start_date_time and now <= exam.end_date_time and exam.total_attempt > exam.attempt_count %}
+                                                lime;
+                                            {% else %}
+                                                grey;
+                                            {% endif %}
+                                            ">
+                                            </span>
+                                    
+                                            <small>
+                                                {% if now < exam.start_date_time %}
+                                                    Upcoming
+                                                {% elif now >= exam.start_date_time and now <= exam.end_date_time and exam.total_attempt > exam.attempt_count %}
+                                                    Started
+                                                {% else %}
+                                                    Closed
+                                                {% endif %}
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <table class="table table-borderless rounded m-0" style="border: 0px solid #ddd; overflow: hidden;">
+                                    <tbody>
+                                        <tr>
+                                            <td><strong>Course:</td>
+                                            <td>{{ exam.question_bank.course }}</td>
+                                        </tr>
+                                        {% if now <= exam.end_date_time and exam.total_attempt > exam.attempt_count%}
+                                            <tr>
+                                                <td><strong>Attempts Left:</strong></td>
+                                                <td>{{ exam.remaining_attempts }} remaining</td>
+                                            </tr>
+                                        {% endif %}
+                                        <tr class="border-top">
+                                            <td><strong>Start:</strong></td>
+                                            <td>{{ exam.start_date_time|date:"d F Y, h:i A" }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>End:</strong></td>
+                                            <td>{{ exam.end_date_time|date:"d F Y, h:i A" }}</td>
+                                        </tr>
+                                        <tr class="border-top">
+                                            <td><strong>Total Questions:</strong></td>
+                                            <td>{{ exam.total_question }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td><strong>Exam Duration:</strong></td>
+                                            <td>{{ exam.duration }} minutes</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+
+                                <!--Buttons-->
+                                {% if now >= exam.start_date_time and now <= exam.end_date_time and exam.total_attempt > exam.attempt_count %}
+                                <div class="d-flex justify-content-center"> 
+                                    <a href="{% url 'exam_agreement' exam.id%}" class="btn btn-light text-primary fw-bold mt-3 mb-0 px-4 py-2 rounded-pill shadow-sm">Attempt Exam</a>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endif %}
+                {% endfor %}
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+{% endblock content %}

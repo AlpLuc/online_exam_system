@@ -1,0 +1,200 @@
+{% extends "layout.html" %}
+{% load static %}
+{% load ce_dict_extra %}
+
+{% block stylesheet %}<link rel="stylesheet" href="{% static 'css/completed_exam.css'%}">{% endblock stylesheet %}
+
+{% block content %} 
+<div class="row m-3">
+    <div class="col-3">
+        <div class="card mx-auto shadow">
+            <div class="card-body p-3">
+                <h2>Course</h2>
+                <hr>
+                <div class="accordion accordian-flush" id="exam_accordian">
+                    {% for title, completed_exams in exam_dict.items %}
+                        <div class="accordian-item">
+                            <h2 class="accordian-header" id="exam_heading{{forloop.counter}}">
+                                <button class="accordion-button collapsed px-1" type="button" data-bs-toggle="collapse" data-bs-target="#exam_div{{forloop.counter}}" aria-expanded="true" aria-controls="exam_div{{forloop.counter}}">
+                                    {{title}}
+                                </button>    
+                            </h2>
+                            <div class="accordian-collapse p-0 {% if selected_exam.id|decode and not selected_exam.id|id_exist_in:completed_exams %}collapse{% endif %}" id="exam_div{{forloop.counter}}"  aria-labelledby="exam_heading{{forloop.counter}}" data-bs-parent="#exam_accordian">
+                                {% for exam in completed_exams %}
+                                    <a
+                                        href="{% url 'lecture_view_completed_exam' %}?exam_id={{ exam.id }}"  
+                                        class="exam_btn btn  border-bottom text-start w-100 {% if selected_exam.id|decode and selected_exam.id|decode == exam.id|decode %}btn-primary{% else %}btn-light{% endif %}" 
+                                        style="border-radius:0; {% if selected_exam.id|decode == '' or selected_exam.id|decode != exam.id|decode %}background-color:white;{% endif %}">
+                                        {{exam.title}}
+                                    </a>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    {% endfor %}  
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-9 container-md mx-auto p-0 bg-white border border-grey shadow">
+        <div class="card mx-auto">
+            <div class="card-body p-0 pb-0">
+                
+                <div class="p-3 pb-1 top-0 row">
+                    <a class="col-md-6 text-decoration-none text-dark" href="{% if selected_exam %}{% url 'lecture_view_completed_exam' %}?exam_id={{ selected_exam.id }}{% else %}{% url 'lecture_view_completed_exam' %}{% endif %}">
+                        <h2>{% if selected_exam %}{{selected_exam.title}}{% else %}Completed Exam{% endif %}</h2>
+                    </a>
+                    <form method="GET" class="col-5 row" id="searchFilterForm">
+                        <!--Preserve query-->
+                        <input type="hidden" name="exam_id" value="{{ request.GET.exam_id }}">
+                        <input type="hidden" name="page" value="{{ request.GET.page }}">
+                        <!--search-->
+                        <div class="col-md-6 d-flex my-auto">
+                            <i class="bi bi-search my-auto mx-1"></i>
+                            <input type="text" name="search" class="form-control py-0" placeholder="Search name" value="{{ request.GET.search }}">
+                        </div>
+                                
+                        <!--filter-->
+                        <div class="col-md-6 d-flex my-auto">
+                            <i class="bi bi-funnel-fill my-auto mx-1"></i>
+                            <select name="filter" class="form-select py-0" onchange="document.getElementById('searchFilterForm').submit()" >
+                                <option value="">Filter by Year</option>
+                                {% for year in years_list %}
+                                    <option value="{{ year }}" {% if filter_type == year %}selected{% endif %}>{{ year }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </form>
+                    <div class="col-1 m-auto text-end">
+                        <a 
+                            class="btn btn-light fs-5 rounded border shadow-sm {% if not completed_exams or not exist_graded_exam %}disabled{% endif %}" 
+                            data-bs-toggle="modal" data-bs-target="#exam_report_modal">
+                            <i class="bi bi-file-earmark-arrow-down" data-bs-toggle="tooltip modal" data-bs-placement="top" title="View Exam Report"></i>
+                        </a>
+                    </div>
+                </div>
+                <hr class="m-1"> 
+                
+                <div class="px-3">
+                    <table class="table">
+                        <thead>
+                        <tr>
+                            <th scope="col" style="width: 5%;">#</th>
+                            <th scope="col" style="width: 25%;">Name</th>                        
+                            <th scope="col" style="width: 15%;">Completed At</th>
+                            <th scope="col" style="width: 10%;">Time Taken</th>
+                            <th scope="col" style="width: 5%;">Attempt</th>
+                            <th scope="col" style="width: 5%;">Marks</th>
+                            <th scope="col" style="width: 10%;">Status</th>
+                            <th scope="col" style="width: 25%;">Action</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                            {% for completed_exam in completed_exams %}
+                            <tr class="clickable-row shadow-hover" onclick="window.location=''" data-bs-toggle="tooltip" data-bs-placement="top">    
+                                <th scope="row"> {{forloop.counter}} </th>
+                                <td> {{ completed_exam.student.user.first_name }} {{ completed_exam.student.user.last_name }} </td>
+                                <td> {{ completed_exam.completed_at|date:"d/m/Y H:i" }} </td>
+                                <td> {{ completed_exam.time_taken|seconds_to_minutes}}</td>
+                                <td> {{completed_exam.attempt}} </td>
+                                <td> {{ completed_exam.total_mark}} </td>
+                                {% if  not completed_exam.exam_passed %}
+                                    <td class="text-light bg-danger"><strong>Fail</strong></td>
+                                {% elif completed_exam.graded == 0 %}
+                                    <td class="text-danger">Not Graded</td>
+                                {% elif completed_exam.graded == 1 %}
+                                    <td class="text-success">Graded</td>
+                                {% endif %}
+                                <td>
+                                    <a href="{% url 'grade_completed_exam' completed_exam.id %}" class="btn btn-primary">Grade Exam</a>
+                                    <a href="{% url 'view_exam_log' completed_exam.id %}" class="btn btn-primary">View Logs</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                            
+                        </tbody>                
+                    </table>
+                </div>
+                
+                <!--Pagination-->
+                <nav class="my-3">
+                    <ul class="pagination justify-content-center pagination-clean">
+                        {% if completed_exams.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?exam_id={{ request.GET.exam_id }}&page={{ completed_exams.previous_page_number }}&search={{request.GET.search}}&filter={{request.GET.filter}}" aria-label="Previous">
+                                <span aria-hidden="true">&laquo;</span>
+                            </a>
+                        </li>
+                        {% else %}
+                        <li class="page-item disabled">
+                            <a class="page-link" href="#" aria-label="Previous">
+                                <span aria-hidden="true">&laquo;</span>
+                            </a>
+                        </li>
+                        {% endif %}
+        
+                        {% with completed_exams.number|add:"-2" as start_page %}
+                        {% with completed_exams.number|add:"2" as end_page %}
+                        {% for num in completed_exams.paginator.page_range %}
+                        {% if num >= start_page and num <= end_page %}
+                        <li class="page-item {% if completed_exams.number == num %}active{% endif %}">
+                            <a class="page-link" href="?exam_id={{ request.GET.exam_id }}&page={{ num }}&search={{request.GET.search}}&filter={{request.GET.filter}}">{{ num }}</a>
+                        </li>
+                        {% endif %}
+                        {% endfor %}
+                        {% endwith %}
+                        {% endwith %}
+        
+                        {% if completed_exams.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?exam_id={{ request.GET.exam_id }}&page={{ completed_exams.next_page_number }}&search={{request.GET.search}}&filter={{request.GET.filter}}" aria-label="Next">
+                                <span aria-hidden="true">&raquo;</span>
+                            </a>
+                        </li>
+                        {% else %}
+                        <li class="page-item disabled">
+                            <a class="page-link" href="#" aria-label="Next">
+                                <span aria-hidden="true">&raquo;</span>
+                            </a>
+                        </li>
+                        {% endif %}
+                    </ul>
+                </nav>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--View Exam Report Modal-->
+<div class="modal fade" id="exam_report_modal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3 class="modal-title" id="exampleModalLabel">View Exam Report</h3>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form {% if selected_exam %}action="{% url 'view_exam_report' encrypted_id=selected_exam.id %}"{% endif %} method=POST>
+            {% csrf_token %}
+            <div class="modal-body">
+                <input type="hidden" name="exam_id" value="{{ selected_exam.id }}">
+                <h6>Exam : {{selected_exam.title}}</h6>
+                <h6>Date :  
+                    <input type="date" id="id_start_date_time" name="start_date" class="form-control" value="{{ oldest_exam.completed_at|date:'Y-m-d' }}"  min="{{ oldest_exam.completed_at|date:'Y-m-d' }}" max="{{ latest_exam.completed_at|date:'Y-m-d' }}"/> - 
+                    <input type="date" id="id_end_date_time" name="end_date" class="form-control"  value="{{ latest_exam.completed_at|date:'Y-m-d' }}" min="{{ oldest_exam.completed_at|date:'Y-m-d' }}" max="{{ latest_exam.completed_at|date:'Y-m-d' }}"/>
+                </h6>
+            
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="submit" name="exam_report_btn" class="btn btn-primary" onclick="validateDateTime()">View Report</button>
+            </div>
+        </form>
+      </div>
+    </div>
+</div>
+
+{% endblock content %}
+
+{% block script %}
+    <script src="{% static 'js/completed_exam.js' %}"></script>
+{% endblock script %}

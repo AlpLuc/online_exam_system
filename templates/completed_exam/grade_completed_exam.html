@@ -1,0 +1,263 @@
+{% extends "layout.html" %}
+{% load static %}
+
+{% block content %}
+<form class="row d-flex justify-content-center p-4 w-100" action="" method="POST">
+    {% csrf_token %}
+    <!--Left Column-->
+    <div class="col-3">
+        <!--Question-->
+        <div class="bg-white p-3 border rounded shadow">
+            <h4 class="mb-4">{{completed_exam.exam.title}}</h4>
+            <!--MCQ-->
+            {% if mcq_question %}
+                <h5>MCQ Questions <i class="bi bi-check text-success"></i></h5>
+                {% for question in mcq_question  %}
+                    <a id="mcq_question_btn{{forloop.counter}}" class="btn {% if forloop.counter == 1 and first_ques_type == 'mcq' %}btn-primary{% else %}btn-light{% endif %} border border-1" value="{{forloop.counter}}" onclick="switchQuestion({{forloop.counter}},'mcq')">
+                        {{forloop.counter}}
+                    </a>
+                {% endfor %}
+                <hr>
+            {% endif %}
+            <!--TF-->
+            {% if tf_question %}
+                <h5>TF Questions <i class="bi bi-check text-success"></i></h5>
+                {% for question in tf_question  %}
+                    <a id="tf_question_btn{{forloop.counter}}" class="btn {% if forloop.counter == 1 and first_ques_type == 'tf' %}btn-primary{% else %}btn-light{% endif %} border border-1" value="{{forloop.counter}}" onclick="switchQuestion({{forloop.counter}},'tf')">
+                        {{forloop.counter}}
+                    </a>
+                {% endfor %}
+                <hr>
+            {% endif %}
+            
+            <!--Essay-->
+            {% if essay_question %}
+                <h5>Essay Questions {% if completed_exam.graded %}<i class="bi bi-check text-success"></i>{% endif %}</h5>
+                {% for essay in essay_question %}
+                    <a id="essay_question_btn{{forloop.counter}}" class="btn {% if forloop.counter == 1 and first_ques_type == 'essay' %}btn-primary{% else %}btn-light{% endif %} border border-1" value="{{forloop.counter}}" onclick="switchQuestion({{forloop.counter}},'essay')">
+                        {{forloop.counter}}
+                    </a>
+                {% endfor %}
+                <hr>
+            {% endif %}
+            <div class="btn-group d-flex justify-content-evenly">
+                <div class="d-flex justify-content-center">
+                    <button class="btn btn-primary rounded-pill w-100" name="submit" value="finish_grading">Finish Grading</button>
+                </div>
+    
+                {% if completed_exam.exam_passed %}
+                    <div class="d-flex justify-content-center">
+                        <button class="btn btn-danger rounded-pill w-100" name="submit" value="fail_exam">Fail Exam</button>
+                    </div>
+                {% endif %}
+            </div>
+
+        </div>
+    </div>
+    <!--Mid Column-->
+    <div class="col-6">
+        <div class="bg-white py-3 px-5 border rounded shadow">
+            <!--MCQ Question-->
+            {% for question in mcq_question %}
+                <div class="mcq_question_div" id="mcq_question{{forloop.counter}}" style="display:{% if forloop.counter == 1 and first_ques_type == 'mcq' %}block{% else %}none{% endif %};">
+                    <div>
+                        <div>
+                            <h4 class="m-0">{{forloop.counter}}. {{question.1}}</h4>
+                        </div>
+                        <div>
+                            <h6 class="m-2">Mark: {% if question.3 %}{{question.4}}{% else %}<span class="text-danger">0</span>{% endif %}/{{question.4}}</h6>
+                        </div>
+                    </div>
+                    <div class="m-0" style="max-height:30vw;">
+                        {% for option, value in question.5.items %}
+                            <!--if correct selected answer, if correct answer, if wrong selected answer-->
+                            <p class="card fs-5 p-2 
+                                {% if value|stringformat:"s" in question.2 and question.3 %}
+                                    bg-success text-light
+                                {% elif value|stringformat:"s" in question.6 and not question.3 %}
+                                    bg-success text-light
+                                {% elif value|stringformat:"s" in question.2 and not question.3 %}
+                                    bg-danger text-light
+                                {% else %}
+                                    bg-light text-decoration-line-through
+                                {% endif %}">{{option}}
+                            </p>
+                        {% endfor %}
+                    </div>
+
+                </div>
+            {% endfor %}
+            
+            <!--TF Question-->
+            {% for question in tf_question %}
+                <div class="tf_question_div" id="tf_question{{forloop.counter}}" style="display:{% if forloop.counter == 1 and first_ques_type == 'tf' %}block{% else %}none{% endif %};">
+                    <div>
+                        <div>
+                            <h4 class="m-0">{{forloop.counter}}. {{question.1}}</h4>
+                        </div>
+                        <div>
+                            <h6 class="m-2">Mark: {% if question.3 %}{{question.4}}{% else %}<span class="text-danger">0</span>{% endif %}/{{question.4}}</h6>
+                        </div>
+                    </div>
+                    <div class="m-0" style="max-height:30vw;">
+                        <!--if correct selected answer, if correct answer, if wrong selected answer-->
+                        <p class="card fs-5 p-2 
+                            {% if question.2 == '1' and question.3 %}
+                                bg-success text-light
+                            {% elif '1' in question.5 %}
+                                bg-success text-light
+                            {% elif question.2 == '1' and not question.3 %}
+                                bg-danger text-light
+                            {% else %}
+                                bg-light text-decoration-line-through
+                            {% endif %}">True
+                        </p>
+                        <p class="card fs-5 p-2 
+                            {% if question.2 == '0' and question.3 %}
+                                bg-success text-light
+                            {% elif '0' in question.5 %}
+                                bg-success text-light
+                            {% elif question.2 == '0' and not question.3 %}
+                                bg-danger text-light
+                            {% else %}
+                                bg-light text-decoration-line-through
+                            {% endif %}">False
+                        </p>
+                    </div>
+
+                </div>
+            {% endfor %}
+
+            <!--Essay Question-->
+            {% for question in essay_question %}
+                <div class="essay_question_div" id="essay_question{{forloop.counter}}" style="display:{% if forloop.counter == 1 and first_ques_type == 'essay' %}block{% else %}none{% endif %};">
+                    <div>
+                        <div>
+                            <h4 class="m-0">{{forloop.counter}}. {{question.1}}</h4>
+                        </div>
+                        <div class="row m-2 align-items-center w-50">
+                            <div class="col-auto">
+                                <h6 class="mb-0">Marks: </h6>
+                            </div>
+                            <div class="col-auto p-0">
+                                <input class="fs-6 text-end form-control-sm w-auto" style="height:2rem;" type="number" name="{{question.0}}" value="{{question.3}}" min="0" max="{{question.4}}">
+                            </div>
+                            <div class="col-auto">
+                                /{{question.4}}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <hr>
+                    <div class="m-0 p-3 border rounded" style="height:29vw; max-height:30vw; overflow-y: auto;">
+                        <p>{{question.2|linebreaks}}</p>
+                    </div>
+
+                </div>
+            {% endfor %}
+        </div>          
+    </div>
+
+    <!--Right Column-->
+    <div class="col-3 fixed">        
+        <!--Details-->
+        <div class="bg-white p-3 border rounded shadow">
+            <h5>Details</h5>
+            <hr class="mb-1">
+            <table class="table table-borderless m-0">
+                <tbody>
+                    <tr>
+                        <th style="width:45%">Name</th>
+                        <td style="width:1%">:</td>
+                        <td style="width:54%">
+                            <a href="" class="text-decoration-none text-dark" data-bs-toggle="modal" data-bs-target="#student_profile_modal">{{ completed_exam.student.user.first_name }} {{ completed_exam.student.user.last_name }}</a>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Course</th>
+                        <td>:</td>
+                        <td>{{ completed_exam.exam.question_bank.course.name }}</td>
+                    </tr>
+                    <tr>
+                        <th>Current Marks</th>
+                        <td>:</td>
+                        <td>
+                            <span class="text-decoration-underline">{{ completed_exam.total_mark }}</span> / {{ completed_exam.full_mark }}
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <!--Comment-->
+        <div class="bg-white p-3 mt-4 border rounded shadow">
+            <h5>Comments</h5>
+            <hr>
+            <textarea  class="essay-textarea p-2 w-100" name="comment" rows="5" style="height:17vw; resize: none;">{{completed_exam.comment}}</textarea>
+        </div>
+    </div>
+</form> 
+
+
+<!-- Modal -->
+<div class="modal fade" id="student_profile_modal" tabindex="-1" aria-labelledby="student_profile_modal_label" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="student_profile_modal_label">Student Profile</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <div class="row g-4">
+                <!-- Profile Picture Section -->
+                <div class="col-12 col-4 text-center">
+                    <div class="container">
+                        <div class="d-flex justify-content-center mb-3">
+                            {% if user_profile.profile_picture %}
+                                <img src="{{ completed_exam.student.user.student.profile_picture.url }}" alt="Profile Picture" class="img-fluid rounded-circle" style="width: 100%; max-width: 125px; height: auto; height: 125px;">
+                            {% else %}
+                                <img src="/media/profile_pictures/default.jpg" alt="Default Profile Picture" class="img-fluid rounded-circle" style="width: 100%; max-width: 125px; height: auto; height: 125px;">
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+
+                <div>
+                    <div class="row mb-3">
+                        <div class="col-12 col-md-6">
+                            <strong class="fs-4">Name:</strong>
+                            <p class="fs-5 text-center text-md-start">{{ completed_exam.student.user.first_name | capfirst }} {{ completed_exam.student.user.last_name | capfirst }}</p>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-12 col-md-6">
+                            <strong class="fs-4">Programme:</strong>
+                            <p class="fs-5">{{ completed_exam.student.user.student.programme }}</p>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-12 col-md-6">
+                            <strong class="fs-4">Email:</strong>
+                            <p class="fs-5">{{ completed_exam.student.user.email }}</p>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <strong class="fs-4">Phone Number:</strong>
+                            <p class="fs-5">{{ completed_exam.student.user.student.phone_num }}</p>
+                        </div>
+                    </div>
+                </div>
+        </div>
+      </div>
+    </div>
+</div>
+
+
+{% endblock content %}
+
+{% block script %}
+    <script src="{% static 'js/completed_exam.js' %}"></script>
+    <script>
+        curr_ques = 1;
+        curr_ques_type = '{{first_ques_type}}';
+    </script>
+{% endblock script %}

@@ -1,0 +1,32 @@
+{% extends 'layout.html'%}
+
+{% block content %}
+<div class="container-md my-4">
+    <div class="card mx-auto shadow" style="max-width: 70vw; font-size: 1rem;">
+        <div class="card-body p-3">
+            <h1>Create Question Bank</h1>
+            <form action="" method=POST>
+                {% csrf_token %}
+                 <!-- Title Field -->
+                <div class="form-group mb-3">
+                    <label for="id_title" class="form-label">{{question_bank_form.title.label}}</label>
+                    <input type="text" name="title" value="{{question_bank.title}}" required class="form-control" id="id_title">
+                </div>
+                
+                <!-- Course Field -->
+                <div class="form-group mb-4">
+                    <label for="id_course" class="form-label">Course</label>
+                    <select name="course" required class="form-select" id="id_course">
+                        <option value="">Select a course</option>
+                        {% for course in course_list %}
+                            <option value="{{ course.id }}" {% if question_bank.course == course %}selected{% endif %}>{{ course | title}}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <button class="btn btn-primary" type="submit" value="Submit">Submit</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock content %}

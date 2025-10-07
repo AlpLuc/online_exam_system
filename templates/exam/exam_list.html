@@ -1,0 +1,138 @@
+{% extends 'layout.html'%}
+{% load static %}
+
+{% block stylesheet %}<link rel="stylesheet" href="{% static 'css/exam.css'%}">{% endblock stylesheet %}
+
+{% block content %}
+<div class="container-md mx-auto p-0 border border-grey shadow">
+  <div class="card mx-auto shadow">
+    <div class="card-body p-0 pb-0">
+
+      <div class="postion-sticky p-3 pb-1 top-0 row">
+        <a class="col-md-5 text-decoration-none text-dark" href="{% url 'exam_list' %}"><h2>Exam List</h2></a>
+        <form method="GET" class="col-4 row" id="searchFilterForm">
+          <!--search-->
+          <div class="col-md-6 d-flex my-auto">
+            <i class="bi bi-search my-auto mx-1"></i>
+            <input type="text" name="search" class="form-control" placeholder="Search exam" value="{{ search_query }}">
+          </div>
+                    
+          <!--filter-->
+          <div class="col-md-6 d-flex my-auto">
+            <i class="bi bi-funnel-fill my-auto mx-1"></i>
+            <select name="filter" class="form-select py-0" onchange="document.getElementById('searchFilterForm').submit()" >
+              <option value="">Filter by Course</option>
+              {% for course in course_list %}
+                <option value="{{ course.id }}" {% if filter_type == course %}selected{% endif %}>{{ course | title}}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </form>
+
+        <!--create button-->
+        <div class="col-md-3 text-end my-auto">
+          <a class="btn btn-primary mx-auto" href="{% url 'create_exam' %}" role="button">Create Exam</a>
+        </div>
+      </div>
+      <hr class="m-1"> 
+
+        <div class="px-3">
+          <table class="table table-hover">
+              <thead>
+                <tr>
+                  <th scope="col" style="width: 5%;">#</th>
+                  <th scope="col" style="width: 25%;">Title</th>
+                  <th scope="col" style="width: 15%;">Course</th>
+                  <th scope="col" style="width: 15%;">Opened By</th>
+                  <th scope="col" style="width: 15%;">Closed By</th>
+                  <th scope="col" style="width: 10%;">Status</th>
+                  <th scope="col" style="width: 15%;">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+              {% for exam in exam_list %}
+                <tr class="clickable-row shadow-hover" onclick="window.location='{% url 'view_exam' exam.id %}'" data-bs-toggle="tooltip" data-bs-placement="top" title="View {{exam.title}}">
+                  <th scope="row">{{forloop.counter}}</th>
+                  <td>{{exam.title}}</td>
+                  <td>{{exam.question_bank.course.name}}</td>
+                  <td>{{exam.start_date_time}}</td>
+                  <td>{{exam.end_date_time}}</td>
+                  {% if exam.exam_status %}
+                    {% if now < exam.start_date_time %}
+                        <td class="text-warning">Upcoming</td>
+                    {% elif now >= exam.start_date_time and now <= exam.end_date_time %}
+                        <td class="text-success">Ongoing</td>
+                    {% else %}
+                        <td class="text-danger">Closed</td>
+                    {% endif %}
+                  {% else %}
+                    <td class="text-secondary">Unavailable</td> 
+                  {% endif %}               
+                  <td>
+                    <a href="{% url 'edit_exam' exam.id %}" class="btn btn-primary">Edit</a>
+                    {% if exam.exam_status %}
+                      <a href="{% url 'change_exam_status' exam.id %}" class="btn btn-danger">Disable</a>
+                    {% else %}
+                      <a href="{% url 'change_exam_status' exam.id %}" class="btn btn-success">Enable</a>
+                    {% endif %}
+                  </td>
+                </tr>
+              {% endfor %}
+              </tbody>
+          </table>
+
+          <!-- Pagination Controls -->
+          <nav class="my-3">
+            <ul class="pagination justify-content-center pagination-clean">
+                {% if exam_list.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ exam_list.previous_page_number }}" aria-label="Previous">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+                {% else %}
+                <li class="page-item disabled">
+                    <a class="page-link" href="#" aria-label="Previous">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+                {% endif %}
+
+                {% with exam_list.number|add:"-2" as start_page %}
+                {% with exam_list.number|add:"2" as end_page %}
+                {% for num in exam_list.paginator.page_range %}
+                {% if num >= start_page and num <= end_page %}
+                <li class="page-item {% if exam_list.number == num %}active{% endif %}">
+                    <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                </li>
+                {% endif %}
+                {% endfor %}
+                {% endwith %}
+                {% endwith %}
+
+                {% if exam_list.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ exam_list.next_page_number }}" aria-label="Next">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+                {% else %}
+                <li class="page-item disabled">
+                    <a class="page-link" href="#" aria-label="Next">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+          </nav>
+
+
+        </div>
+    </div>
+  </div>
+</div>
+{% endblock content %}
+
+{% block script %}
+  <script src="{% static 'js/exam.js' %}"></script>
+{% endblock script %}

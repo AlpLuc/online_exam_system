@@ -1,0 +1,36 @@
+.shadow-hover:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Adjust shadow intensity as needed */
+    cursor: pointer;
+} 
+
+.shadow-hover-circle:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Adjust shadow intensity as needed */
+    border-radius: 50%; /* Make the element circular */
+    cursor: pointer;
+}  
+
+.pagination-clean .page-item .page-link {
+    border: none; /* Remove borders */
+    background: none; /* Remove background */
+    color: #007bff; /* Bootstrap primary color */
+    transition: color 0.2s ease-in-out;
+    box-shadow: none; /* Remove any shadow effect */
+}
+
+.pagination-clean .page-item .page-link:hover {
+    color: #0056b3; /* Darker shade of primary color */
+}
+
+.pagination-clean .page-item.active .page-link {
+    color: #fff; /* White text for active page */
+    background-color: #007bff; /* Bootstrap primary color */
+    border-radius: 5px; /* Rounded active button */
+}
+.pagination-clean .page-item .page-link:active {
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2); /* Larger shadow on click */
+}
+
+.pagination-clean .page-item.disabled .page-link {
+    color: #6c757d; /* Disabled text color */
+    pointer-events: none; /* Prevent clicking */
+}
