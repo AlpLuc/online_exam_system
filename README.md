@@ -16,7 +16,7 @@ The system successfully achieved the following objectives:
 
 1.  **Design** a web-based online examination system with user-centered design principles.
 2.  **Implement** activity tracking and screen capturing within the system by employing systematic approaches like **automated user action tracking** and **real-time screen capture**.
-3.  **Evaluate and test** the system through unit testing, integration testing, and the System Usability Scale (SUS). The system achieved an average SUS score of **88**.
+3.  **Evaluate and test** the system through unit testing, integration testing, and the System Usability Scale (SUS).
 
 ## Core Features and Modules
 
